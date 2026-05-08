@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Menu - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu" class="active">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/user/profile">Profile</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <span class="user-info"><%= typeof user !== 'undefined' ? user.username : '' %></span>
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <h2 style="margin-bottom:24px;">🍵 Our Menu</h2>
+
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+      <a href="/user/menu" class="btn secondary" style="padding:8px 16px;<%= selectedCategory === 'all' ? 'background:var(--primary);color:var(--bg-dark);' : '' %>">All</a>
+      <a href="/user/menu?category=milk-tea" class="btn secondary" style="padding:8px 16px;<%= selectedCategory === 'milk-tea' ? 'background:var(--primary);color:var(--bg-dark);' : '' %>">Milk Tea</a>
+      <a href="/user/menu?category=fruit-tea" class="btn secondary" style="padding:8px 16px;<%= selectedCategory === 'fruit-tea' ? 'background:var(--primary);color:var(--bg-dark);' : '' %>">Fruit Tea</a>
+      <a href="/user/menu?category=classic" class="btn secondary" style="padding:8px 16px;<%= selectedCategory === 'classic' ? 'background:var(--primary);color:var(--bg-dark);' : '' %>">Classic</a>
+      <a href="/user/menu?category=specialty" class="btn secondary" style="padding:8px 16px;<%= selectedCategory === 'specialty' ? 'background:var(--primary);color:var(--bg-dark);' : '' %>">Specialty</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:20px;">
+      <% drinks.forEach(drink => { %>
+        <div class="drink-card" style="flex-direction:column;text-align:center;">
+          <div style="font-size:64px;margin-bottom:12px;"><%= drink.image %></div>
+          <div class="drink-name"><%= drink.name %></div>
+          <p style="color:var(--text-muted);margin:8px 0;font-size:13px;">Category: <%= drink.category %></p>
+          <p style="color:var(--text-muted);margin:4px 0;font-size:12px;">Stock: <%= drink.stock %></p>
+          <div class="drink-price" style="margin:12px 0;">$<%= (drink.price || 0).toFixed(2) %></div>
+          <form action="/user/cart/add" method="POST" style="display:flex;gap:8px;justify-content:center;align-items:center;">
+            <input type="hidden" name="drink_id" value="<%= drink.id %>">
+            <input type="number" name="quantity" value="1" min="1" max="<%= drink.stock %>" style="width:60px;margin:0;">
+            <button type="submit" class="secondary" style="padding:8px 16px;font-size:13px;">Add to Cart</button>
+          </form>
+        </div>
+      <% }); %>
+    </div>
+
+    <% if (!drinks || drinks.length === 0) { %>
+      <div class="card" style="text-align:center;padding:40px;">
+        <p style="color:var(--text-muted);">No drinks found in this category.</p>
+        <a href="/user/menu" class="btn" style="margin-top:16px;">View All Drinks</a>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cart - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart" class="active">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/user/profile">Profile</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <h2 style="margin-bottom:24px;">🛒 Your Cart</h2>
+
+    <% if (!cartItems || cartItems.length === 0) { %>
+      <div class="card" style="text-align:center;padding:40px;">
+        <p style="font-size:48px;margin-bottom:16px;">🧋</p>
+        <p style="color:var(--text-muted);">Your cart is empty</p>
+        <a href="/user/menu" class="btn" style="margin-top:16px;">Browse Menu</a>
+      </div>
+    <% } else { %>
+      <div style="display:grid;grid-template-columns:1fr 320px;gap:24px;">
+        <div class="card">
+          <table style="width:100%;">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% cartItems.forEach(function(item) { %>
+                <tr>
+                  <td>
+                    <div style="display:flex;align-items:center;gap:12px;">
+                      <span style="font-size:24px;"><%= item.image || '🧋' %></span>
+                      <div>
+                        <div style="font-weight:600;"><%= item.name %></div>
+                        <div style="font-size:12px;color:var(--text-muted);">$<%= (item.price || 0).toFixed(2) %> each</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>$<%= (item.price || 0).toFixed(2) %></td>
+                  <td>
+                    <form action="/user/cart/update" method="POST" style="display:flex;align-items:center;gap:8px;">
+                      <input type="hidden" name="item_id" value="<%= item.id %>">
+                      <input type="number" name="quantity" value="<%= item.quantity %>" min="0" max="99" style="width:60px;margin:0;padding:8px;">
+                      <button type="submit" class="secondary" style="padding:6px 12px;font-size:12px;">Update</button>
+                    </form>
+                  </td>
+                  <td style="font-weight:600;color:var(--success);">$<%= ((item.price || 0) * (item.quantity || 0)).toFixed(2) %></td>
+                  <td>
+                    <form action="/user/cart/remove" method="POST">
+                      <input type="hidden" name="item_id" value="<%= item.id %>">
+                      <button type="submit" class="danger" style="padding:6px 12px;font-size:12px;">✕</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="card" style="height:fit-content;">
+          <h3 style="margin-bottom:16px;">Order Summary</h3>
+          <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+            <span>Items:</span>
+            <span><%= cartItems.length %></span>
+          </div>
+          <div style="display:flex;justify-content:space-between;font-size:24px;font-weight:700;color:var(--primary-light);margin:16px 0;padding-top:16px;border-top:1px solid var(--border);">
+            <span>Total:</span>
+            <span>$<%= (typeof total !== 'undefined' ? total : 0).toFixed(2) %></span>
+          </div>
+
+          <form action="/user/order/checkout" method="POST">
+            <label>Delivery Address</label>
+            <textarea name="delivery_address" rows="2" placeholder="Enter your address..." style="margin-bottom:12px;"></textarea>
+
+            <label>Notes (optional)</label>
+            <textarea name="notes" rows="2" placeholder="Special instructions..." style="margin-bottom:16px;"></textarea>
+
+            <button type="submit" style="width:100%;">Place Order</button>
+          </form>
+        </div>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

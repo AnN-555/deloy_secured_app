@@ -1,0 +1,37 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v2.10
+    container_name: traefik
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/traefik.yml:/traefik.yml:ro
+      - ./traefik/acme.json:/acme.json:rw
+    networks:
+      - milktea-network
+
+  app:
+    build: .
+    container_name: milktea-app
+    restart: always
+    environment:
+      - PORT=3000
+      - NODE_ENV=production
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.milktea.rule=Host(`demo.zoskisk.com`)"
+      - "traefik.http.routers.milktea.entrypoints=web"
+      - "traefik.http.services.milktea.loadbalancer.server.port=3000"
+      - "traefik.docker.network=milktea-network"
+    networks:
+      - milktea-network
+
+networks:
+  milktea-network:
+    driver: bridge

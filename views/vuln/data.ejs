@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A6: Data Exposure - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data" class="active">A6</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <span class="vuln-badge critical">⚠ A6: Sensitive Data Exposure</span>
+      <h2>👥 Customer Database</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        All registered customers. Passwords stored in plaintext - critical security issue!
+      </p>
+
+      <div class="alert alert-danger">
+        ⚠ <strong>CRITICAL:</strong> Customer passwords are stored in PLAINTEXT in the database!
+      </div>
+
+      <div class="table-wrapper" style="margin-top:20px;">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Balance</th></tr>
+          </thead>
+          <tbody>
+            <% if (!users || users.length === 0) { %>
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No users found</td></tr>
+            <% } else { %>
+              <% users.forEach(function(u) { %>
+                <tr>
+                  <td><%= u.id %></td>
+                  <td><strong><%= u.username %></strong></td>
+                  <td><%= u.email %></td>
+                  <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
+                  <td style="color:var(--success);">$<%= u.balance %></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top:24px;padding:16px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);">
+        <h3 style="color:var(--danger);margin-bottom:8px;">What should be protected?</h3>
+        <p style="color:var(--text-muted);margin:0;">Passwords should NEVER be stored in plaintext. Use bcrypt or Argon2 hashing. Also, passwords should NEVER be returned in API responses or displayed in admin panels.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders" class="active">Orders</a>
+        <a href="/user/profile">Profile</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <h2 style="margin-bottom:24px;">📋 My Orders</h2>
+
+    <% if (!orders || orders.length === 0) { %>
+      <div class="card" style="text-align:center;padding:40px;">
+        <p style="font-size:48px;margin-bottom:16px;">📦</p>
+        <p style="color:var(--text-muted);">No orders yet</p>
+        <a href="/user/menu" class="btn" style="margin-top:16px;">Order Now</a>
+      </div>
+    <% } else { %>
+      <div class="card">
+        <table style="width:100%;">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Date</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% orders.forEach(function(order) {
+              var bgColor = 'rgba(85,239,196,0.2)';
+              var txtColor = 'var(--success)';
+              if (order.status === 'pending') { bgColor = 'rgba(253,203,110,0.2)'; txtColor = 'var(--warning)'; }
+              if (order.status === 'cancelled') { bgColor = 'rgba(255,107,107,0.2)'; txtColor = 'var(--danger)'; }
+            %>
+              <tr>
+                <td><strong>#<%= order.id %></strong></td>
+                <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+                <td style="color:var(--success);font-weight:600;">$<%= (order.total || 0).toFixed(2) %></td>
+                <td><span class="badge" style="background:<%= bgColor %>;color:<%= txtColor %>;"><%= order.status %></span></td>
+                <td><a href="/user/order/<%= order.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">View</a></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    <% } %>
+  </div>
+</body>
+</html>

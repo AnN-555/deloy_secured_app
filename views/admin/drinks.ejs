@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Drinks - Milk Tea Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea Admin</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/users">Users</a>
+        <a href="/admin/drinks" class="active">Drinks</a>
+        <a href="/admin/orders">Orders</a>
+        <a href="/admin/settings">Settings</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card-header" style="margin-bottom:20px;">
+      <h2>🍵 Drink Management</h2>
+      <a href="/admin/drink/add" class="btn">+ Add Drink</a>
+    </div>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>Image</th><th>Name</th><th>Category</th><th>Price</th><th>Stock</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <% if (!drinks || drinks.length === 0) { %>
+              <tr><td colspan="7" style="text-align:center;color:var(--text-muted);">No drinks found</td></tr>
+            <% } else { %>
+              <% drinks.forEach(function(drink) { %>
+                <tr>
+                  <td><%= drink.id %></td>
+                  <td style="font-size:24px;"><%= drink.image %></td>
+                  <td><strong><%= drink.name %></strong></td>
+                  <td><%= drink.category %></td>
+                  <td style="color:var(--success);">$<%= (drink.price || 0).toFixed(2) %></td>
+                  <td><%= drink.stock %></td>
+                  <td>
+                    <a href="/admin/drink/<%= drink.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">Edit</a>
+                    <form action="/admin/drink/<%= drink.id %>/delete" method="POST" style="display:inline;">
+                      <button type="submit" class="danger" style="padding:6px 12px;font-size:12px;">Delete</button>
+                    </form>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

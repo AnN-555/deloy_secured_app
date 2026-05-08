@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Transfer - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/profile">Profile</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h2>💸 Transfer Balance</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">Send balance to another account</p>
+
+      <% if (error && error.includes('successful')) { %>
+        <div class="alert alert-success">✓ <%= error %></div>
+      <% } else if (error) { %>
+        <div class="alert alert-danger">⚠ <%= error %></div>
+      <% } %>
+
+      <form action="/user/transfer" method="POST">
+        <label>Recipient Account</label>
+        <input type="text" name="to_account" placeholder="e.g. ACC001" required>
+
+        <label>Amount</label>
+        <input type="number" name="amount" placeholder="Enter amount" required>
+
+        <button type="submit" style="margin-top:8px;">Transfer</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

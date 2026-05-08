@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Edit User - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/users">Admin</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h2>Edit Customer: <span style="color:var(--primary-light)"><%= user.username %></span></h2>
+
+      <% if (message) { %>
+        <div class="alert alert-success" style="margin-bottom:16px;">✓ <%= message %></div>
+      <% } %>
+
+      <form action="/admin/user/<%= user.id %>" method="POST">
+        <label>Role</label>
+        <select name="role">
+          <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>Customer</option>
+          <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+        </select>
+
+        <label>Balance</label>
+        <input type="number" name="balance" value="<%= user.balance %>">
+
+        <button type="submit" style="margin-top:8px;">Update Customer</button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

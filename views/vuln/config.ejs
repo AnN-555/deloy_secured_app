@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A5: Misconfiguration - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config" class="active">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <span class="vuln-badge critical">⚠ A5: Security Misconfiguration</span>
+      <h2>⚙️ System Configuration</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        Application configuration panel. Sensitive credentials are stored here.
+      </p>
+
+      <div class="alert alert-danger">
+        ⚠ <strong>WARNING:</strong> Sensitive configuration values are publicly exposed!
+      </div>
+
+      <div class="table-wrapper" style="margin-top:20px;">
+        <table>
+          <thead>
+            <tr><th>Key</th><th>Value</th><th>Risk</th></tr>
+          </thead>
+          <tbody>
+            <% if (!configs || configs.length === 0) { %>
+              <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">No configuration found</td></tr>
+            <% } else { %>
+              <% configs.forEach(function(cfg) {
+                var sensitive = cfg.name.indexOf('pass') !== -1 || cfg.name.indexOf('key') !== -1 || cfg.name.indexOf('secret') !== -1 || cfg.name.indexOf('db_') !== -1;
+              %>
+                <tr>
+                  <td><code><%= cfg.name %></code></td>
+                  <td style="font-family:monospace;color:<%= sensitive ? 'var(--danger)' : 'var(--text)' %>;"><%= cfg.value %></td>
+                  <td><% if (sensitive) { %><span class="badge badge-admin">Sensitive</span><% } else { %><span class="badge badge-user">Safe</span><% } %></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);">💡 Exposed Secrets</h3>
+      <p style="color:var(--text-muted);">Database passwords, API keys, and secrets should NEVER be stored in plain text or displayed in the UI!</p>
+    </div>
+  </div>
+</body>
+</html>

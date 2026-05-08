@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Management - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/users" class="active">Admin</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">👥 Customer Management</h2>
+        <span class="badge badge-admin">Admin</span>
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Balance</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% if (!users || users.length === 0) { %>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No users found</td></tr>
+            <% } else { %>
+              <% users.forEach(function(u) { %>
+                <tr>
+                  <td><%= u.id %></td>
+                  <td><strong><%= u.username %></strong></td>
+                  <td><%= u.email %></td>
+                  <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
+                  <td style="color:var(--success);">$<%= u.balance %></td>
+                  <td><a href="/admin/user/<%= u.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">Edit</a></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

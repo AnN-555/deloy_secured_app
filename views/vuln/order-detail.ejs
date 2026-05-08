@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order #<%= order.id %> - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/vuln/idor">Orders</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h2>📦 Order #<%= order.id %></h2>
+
+      <div class="dashboard-grid" style="margin-top:20px;">
+        <div class="stat-card">
+          <div class="label">User ID</div>
+          <div class="value accent">#<%= order.user_id %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total</div>
+          <div class="value" style="color:var(--success);">$<%= order.total.toFixed(2) %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Status</div>
+          <div class="value" style="font-size:16px;"><%= order.status %></div>
+        </div>
+      </div>
+
+      <table style="margin-top:20px;">
+        <tr><td style="color:var(--text-muted);width:150px;">Order Date</td><td><%= new Date(order.order_date).toLocaleString() %></td></tr>
+        <% if (order.delivery_address) { %>
+          <tr><td style="color:var(--text-muted);">Delivery Address</td><td><%= order.delivery_address %></td></tr>
+        <% } %>
+        <% if (order.notes) { %>
+          <tr><td style="color:var(--text-muted);">Notes</td><td><%= order.notes %></td></tr>
+        <% } %>
+      </table>
+    </div>
+
+    <a href="/vuln/idor" class="btn secondary" style="margin-top:16px;">← Back</a>
+  </div>
+</body>
+</html>

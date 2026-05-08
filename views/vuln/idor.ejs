@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A4: IDOR - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor" class="active">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <span class="vuln-badge critical">⚠ A4: Insecure Direct Object Reference</span>
+      <h2>📋 My Orders</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        View your order history. Try accessing order ID 2 directly to see if there's an IDOR vulnerability.
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Order ID</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr>
+          </thead>
+          <tbody>
+            <% if (!orders || orders.length === 0) { %>
+              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No orders found</td></tr>
+            <% } else { %>
+              <% orders.forEach(function(order) { %>
+                <tr>
+                  <td><strong>#<%= order.id %></strong></td>
+                  <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+                  <td style="color:var(--success);">$<%= order.total.toFixed(2) %></td>
+                  <td><span class="badge" style="background:rgba(253,203,110,0.2);color:var(--warning);"><%= order.status %></span></td>
+                  <td><a href="/user/order/<%= order.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">View →</a></td>
+                </tr>
+              <% }); %>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="alert alert-warning" style="margin-top:20px;">
+        ⚠ Try accessing <code>/vuln/orders/2</code> or <code>/vuln/orders/3</code> directly to see other users' orders!
+      </div>
+    </div>
+
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);">💡 Hint - IDOR</h3>
+      <p style="color:var(--text-muted);">Change the order ID in URL to access orders belonging to other users.</p>
+    </div>
+  </div>
+</body>
+</html>

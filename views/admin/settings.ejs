@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/users">Admin</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h2>⚙️ System Settings</h2>
+
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success" style="margin-bottom:16px;">✓ <%= message %></div>
+      <% } %>
+
+      <form action="/admin/settings" method="POST" style="margin-bottom:24px;">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:12px;">
+          <input type="checkbox" name="debugMode" <%= config.debug ? 'checked' : '' %> style="width:auto;margin:0;">
+          <span style="text-transform:none;font-size:14px;color:var(--text);">Debug Mode</span>
+        </label>
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin-bottom:20px;">
+          <input type="checkbox" name="showErrors" <%= config.showErrors ? 'checked' : '' %> style="width:auto;margin:0;">
+          <span style="text-transform:none;font-size:14px;color:var(--text);">Show Errors</span>
+        </label>
+        <button type="submit">Save Settings</button>
+      </form>
+
+      <div class="alert alert-danger">
+        ⚠ Security Risk: Sensitive configuration values are displayed below
+      </div>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Key</th><th>Value</th></tr>
+          </thead>
+          <tbody>
+            <% Object.entries(config).forEach(([key, value]) => { %>
+              <tr>
+                <td><code><%= key %></code></td>
+                <td style="color:var(--danger);font-family:monospace;"><%= value %></td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard" class="active">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/user/profile">Profile</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <span class="user-info"><%= user.username %></span>
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card" style="text-align:center;padding:40px;">
+      <h1 style="font-family:'Dancing Script',cursive;font-size:48px;color:var(--primary-light);">Welcome, <%= user.username %>!</h1>
+      <p style="font-size:18px;margin-top:12px;">🍵 Enjoy our premium milk tea selection</p>
+      <p style="margin-top:8px;">Role: <span class="badge badge-<%= user.role %>"><%= user.role %></span></p>
+    </div>
+
+    <div class="dashboard-grid">
+      <div class="stat-card">
+        <div class="icon">🧋</div>
+        <div class="value">12</div>
+        <div class="label">Menu Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon">🛒</div>
+        <div class="value">0</div>
+        <div class="label">Cart Items</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon">💰</div>
+        <div class="value">$<%= user.balance %></div>
+        <div class="label">Balance</div>
+      </div>
+      <div class="stat-card">
+        <div class="icon">⭐</div>
+        <div class="value">0</div>
+        <div class="label">Points</div>
+      </div>
+    </div>
+
+    <h2 style="margin-top:32px;margin-bottom:16px;">🍵 Today's Special</h2>
+
+    <div class="drink-card">
+      <div class="drink-img">🧋</div>
+      <div class="drink-info">
+        <span class="menu-badge popular">Popular</span>
+        <div class="drink-name">Classic Milk Tea</div>
+        <p style="margin:4px 0;color:var(--text-muted);">Premium black tea with creamy milk</p>
+      </div>
+      <div style="text-align:right;">
+        <div class="drink-price">$5.99</div>
+        <form action="/user/cart/add" method="POST" style="display:inline;">
+          <input type="hidden" name="drink_id" value="1">
+          <button type="submit" class="secondary" style="margin-top:8px;padding:8px 16px;font-size:12px;">Add to Cart</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="drink-card">
+      <div class="drink-img">🍓</div>
+      <div class="drink-info">
+        <span class="menu-badge new">New</span>
+        <div class="drink-name">Strawberry Cheese Tea</div>
+        <p style="margin:4px 0;color:var(--text-muted);">Fresh strawberry with cheese foam</p>
+      </div>
+      <div style="text-align:right;">
+        <div class="drink-price">$6.99</div>
+        <form action="/user/cart/add" method="POST" style="display:inline;">
+          <input type="hidden" name="drink_id" value="2">
+          <button type="submit" class="secondary" style="margin-top:8px;padding:8px 16px;font-size:12px;">Add to Cart</button>
+        </form>
+      </div>
+    </div>
+
+    <h2 style="margin-top:32px;margin-bottom:16px;">Vulnerability Labs</h2>
+    <div class="alert alert-warning" style="margin-bottom:16px;">
+      ⚠ Training mode - Explore security vulnerabilities in this demo app
+    </div>
+
+    <div class="vuln-list">
+      <a href="/vuln/sqli" class="vuln-item" style="text-decoration:none;">
+        <div class="vuln-info">
+          <span class="vuln-id">A1</span>
+          <div>
+            <div class="vuln-name">SQL Injection</div>
+            <div class="vuln-desc">Search drinks by name</div>
+          </div>
+        </div>
+        <span class="btn secondary" style="padding:8px 16px;font-size:13px;">Try →</span>
+      </a>
+
+      <a href="/vuln/xss" class="vuln-item" style="text-decoration:none;">
+        <div class="vuln-info">
+          <span class="vuln-id">A3</span>
+          <div>
+            <div class="vuln-name">Cross-site Scripting</div>
+            <div class="vuln-desc">Leave a review</div>
+          </div>
+        </div>
+        <span class="btn secondary" style="padding:8px 16px;font-size:13px;">Try →</span>
+      </a>
+
+      <a href="/vuln/idor" class="vuln-item" style="text-decoration:none;">
+        <div class="vuln-info">
+          <span class="vuln-id">A4</span>
+          <div>
+            <div class="vuln-name">IDOR</div>
+            <div class="vuln-desc">View order details</div>
+          </div>
+        </div>
+        <span class="btn secondary" style="padding:8px 16px;font-size:13px;">Try →</span>
+      </a>
+
+      <a href="/vuln/config" class="vuln-item" style="text-decoration:none;">
+        <div class="vuln-info">
+          <span class="vuln-id">A5</span>
+          <div>
+            <div class="vuln-name">Misconfiguration</div>
+            <div class="vuln-desc">System settings</div>
+          </div>
+        </div>
+        <span class="btn secondary" style="padding:8px 16px;font-size:13px;">Try →</span>
+      </a>
+
+      <a href="/vuln/data" class="vuln-item" style="text-decoration:none;">
+        <div class="vuln-info">
+          <span class="vuln-id">A6</span>
+          <div>
+            <div class="vuln-name">Data Exposure</div>
+            <div class="vuln-desc">Customer data</div>
+          </div>
+        </div>
+        <span class="btn secondary" style="padding:8px 16px;font-size:13px;">Try →</span>
+      </a>
+    </div>
+
+    <div class="footer">
+      <div class="brand">MilkTea</div>
+      <p style="margin-top:8px;">Premium Bubble Tea Shop - Security Training Demo</p>
+    </div>
+  </div>
+</body>
+</html>

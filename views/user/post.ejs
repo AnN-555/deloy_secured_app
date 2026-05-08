@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Post - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h1>📝 <%= post.title %></h1>
+      <p style="color:var(--text);margin-top:16px;line-height:1.8;"><%= post.content %></p>
+    </div>
+
+    <a href="/user/dashboard" class="btn secondary" style="margin-top:16px;">← Back</a>
+  </div>
+</body>
+</html>

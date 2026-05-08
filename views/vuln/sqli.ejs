@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A1: SQL Injection - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/vuln/sqli" class="active">A1</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <span class="vuln-badge critical">⚠ A1: SQL Injection</span>
+      <h2>🔍 Search Customers</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        Search customer database by username. Try SQL injection: <code>' OR '1'='1</code>
+      </p>
+
+      <form action="/vuln/sqli" method="POST" style="display:flex;gap:12px;align-items:end;">
+        <div style="flex:1;">
+          <label>Username</label>
+          <input type="text" name="search" placeholder="Search customers..." value="<%= query %>" required>
+        </div>
+        <button type="submit">Search</button>
+      </form>
+
+      <% if (!results || results.length === 0) { %>
+        <div class="alert alert-warning" style="margin-top:16px;">No customers found</div>
+      <% } else { %>
+        <div class="table-wrapper" style="margin-top:24px;">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Balance</th></tr>
+            </thead>
+            <tbody>
+              <% results.forEach(function(r) { %>
+                <tr>
+                  <td><%= r.id %></td>
+                  <td><strong><%= r.username %></strong></td>
+                  <td><%= r.email %></td>
+                  <td><span class="badge badge-<%= r.role %>"><%= r.role %></span></td>
+                  <td style="color:var(--success);">$<%= r.balance %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-success" style="margin-top:16px;">
+          ✓ Query returned <%= results.length %> customer(s)
+        </div>
+      <% } %>
+    </div>
+
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);">💡 Hint - SQL Injection</h3>
+      <p style="color:var(--text-muted);">Try: <code>' OR '1'='1</code> to see all customers</p>
+      <p style="color:var(--text-muted);margin-top:8px;">Try: <code>admin' UNION SELECT 1,2,3,4,5--</code> for UNION attack</p>
+    </div>
+  </div>
+</body>
+</html>

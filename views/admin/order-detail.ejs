@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order #<%= order.id %> - Milk Tea Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea Admin</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/orders">Orders</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <div class="card-header">
+        <h2>📦 Order #<%= order.id %></h2>
+        <span class="badge" style="background:<%= order.status === 'pending' ? 'rgba(253,203,110,0.2)' : order.status === 'completed' ? 'rgba(85,239,196,0.2)' : 'rgba(255,107,107,0.2)' %>;color:<%= order.status === 'pending' ? 'var(--warning)' : order.status === 'completed' ? 'var(--success)' : 'var(--danger)' %>;">
+          <%= order.status %>
+        </span>
+      </div>
+
+      <div class="dashboard-grid" style="margin-bottom:24px;">
+        <div class="stat-card">
+          <div class="label">Customer</div>
+          <div class="value" style="font-size:18px;"><%= order.username %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">User ID</div>
+          <div class="value accent">#<%= order.user_id %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Total</div>
+          <div class="value" style="color:var(--success);">$<%= order.total.toFixed(2) %></div>
+        </div>
+      </div>
+
+      <table>
+        <tr><td style="color:var(--text-muted);width:150px;">Order Date</td><td><%= new Date(order.order_date).toLocaleString() %></td></tr>
+        <% if (order.delivery_address) { %>
+          <tr><td style="color:var(--text-muted);">Address</td><td><%= order.delivery_address %></td></tr>
+        <% } %>
+        <% if (order.notes) { %>
+          <tr><td style="color:var(--text-muted);">Notes</td><td><%= order.notes %></td></tr>
+        <% } %>
+      </table>
+
+      <h3 style="margin-top:24px;margin-bottom:12px;">Order Items</h3>
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Quantity</th><th>Price</th><th>Subtotal</th></tr>
+          </thead>
+          <tbody>
+            <% if (items && items.length > 0) { %>
+              <% items.forEach(function(item) { %>
+                <tr>
+                  <td><span style="font-size:20px;margin-right:8px;"><%= item.image || '🧋' %></span><%= item.name %></td>
+                  <td><%= item.quantity %></td>
+                  <td>$<%= (item.price || 0).toFixed(2) %></td>
+                  <td style="font-weight:600;">$<%= ((item.price || 0) * (item.quantity || 0)).toFixed(2) %></td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);">No items</td></tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <a href="/admin/orders" class="btn secondary" style="margin-top:16px;">← Back to Orders</a>
+  </div>
+</body>
+</html>

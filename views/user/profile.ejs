@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/profile" class="active">Profile</a>
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title">My Profile</h2>
+        <span class="badge badge-<%= user.role %>"><%= user.role %></span>
+      </div>
+
+      <div class="dashboard-grid" style="margin-top:20px;">
+        <div class="stat-card">
+          <div class="icon">👤</div>
+          <div class="value" style="font-size:20px;"><%= user.username %></div>
+          <div class="label">Username</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">📧</div>
+          <div class="value" style="font-size:16px;"><%= user.email %></div>
+          <div class="label">Email</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon">💰</div>
+          <div class="value" style="color:var(--success);">$<%= user.balance %></div>
+          <div class="label">Balance</div>
+        </div>
+      </div>
+    </div>
+
+    <a href="/user/dashboard" class="btn secondary" style="margin-top:16px;">← Back to Home</a>
+  </div>
+</body>
+</html>

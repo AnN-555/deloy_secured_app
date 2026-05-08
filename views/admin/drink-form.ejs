@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= drink ? 'Edit' : 'Add' %> Drink - Milk Tea Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea Admin</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/drinks">Drinks</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h2><%= drink ? '✏️ Edit' : '➕ Add' %> Drink</h2>
+
+      <% if (typeof message !== 'undefined' && message) { %>
+        <div class="alert alert-success" style="margin-bottom:16px;">✓ <%= message %></div>
+      <% } %>
+
+      <form action="<%= drink ? '/admin/drink/' + drink.id : '/admin/drink/add' %>" method="POST">
+        <label>Name</label>
+        <input type="text" name="name" value="<%= drink ? drink.name : '' %>" required>
+
+        <label>Price ($)</label>
+        <input type="number" name="price" step="0.01" value="<%= drink ? drink.price : '' %>" required>
+
+        <label>Category</label>
+        <select name="category" required>
+          <option value="milk-tea" <%= drink && drink.category === 'milk-tea' ? 'selected' : '' %>>Milk Tea</option>
+          <option value="fruit-tea" <%= drink && drink.category === 'fruit-tea' ? 'selected' : '' %>>Fruit Tea</option>
+          <option value="classic" <%= drink && drink.category === 'classic' ? 'selected' : '' %>>Classic</option>
+          <option value="specialty" <%= drink && drink.category === 'specialty' ? 'selected' : '' %>>Specialty</option>
+        </select>
+
+        <label>Emoji Icon</label>
+        <input type="text" name="image" value="<%= drink ? drink.image : '🧋' %>" placeholder="🧋" style="width:80px;text-align:center;font-size:24px;">
+
+        <label>Stock</label>
+        <input type="number" name="stock" value="<%= drink ? drink.stock : '50' %>" required>
+
+        <button type="submit" style="margin-top:8px;"><%= drink ? 'Update Drink' : 'Add Drink' %></button>
+      </form>
+    </div>
+  </div>
+</body>
+</html>

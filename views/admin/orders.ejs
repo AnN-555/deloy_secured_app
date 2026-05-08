@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Orders - Milk Tea Admin</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea Admin</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/admin/users">Users</a>
+        <a href="/admin/drinks">Drinks</a>
+        <a href="/admin/orders" class="active">Orders</a>
+        <a href="/admin/settings">Settings</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <h2 style="margin-bottom:20px;">📋 All Orders</h2>
+
+    <div class="table-wrapper">
+      <table>
+        <thead>
+          <tr><th>ID</th><th>User</th><th>Date</th><th>Total</th><th>Status</th><th>Actions</th></tr>
+        </thead>
+        <tbody>
+          <% if (!orders || orders.length === 0) { %>
+          <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No orders yet</td></tr>
+        <% } else { %>
+          <% orders.forEach(function(order) { %>
+            <tr>
+              <td><strong>#<%= order.id %></strong></td>
+              <td><%= order.username %></td>
+              <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+              <td style="color:var(--success);font-weight:600;">$<%= (order.total || 0).toFixed(2) %></td>
+              <td>
+                <form action="/admin/order/<%= order.id %>/status" method="POST" style="display:flex;gap:8px;">
+                  <select name="status" style="margin:0;padding:6px;width:auto;">
+                    <option value="pending" <%= order.status === 'pending' ? 'selected' : '' %>>Pending</option>
+                    <option value="processing" <%= order.status === 'processing' ? 'selected' : '' %>>Processing</option>
+                    <option value="completed" <%= order.status === 'completed' ? 'selected' : '' %>>Completed</option>
+                    <option value="cancelled" <%= order.status === 'cancelled' ? 'selected' : '' %>>Cancelled</option>
+                  </select>
+                  <button type="submit" class="secondary" style="padding:6px 12px;font-size:12px;">Update</button>
+                </form>
+              </td>
+              <td><a href="/admin/order/<%= order.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">View</a></td>
+            </tr>
+          <% }); %>
+        <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

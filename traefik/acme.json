@@ -1,0 +1,17 @@
+{
+  "letsencrypt": {
+    "Account": {
+      "Email": "admin@zoskisk.com",
+      "Registration": {
+        "body": {
+          "status": "valid",
+          "email": "admin@zoskisk.com",
+          "createAt": "2024-01-01T00:00:00Z"
+        },
+        "uri": "https://acme-v02.api.letsencrypt.org/acme/acct/123456789"
+      },
+      "PrivateKey": "xxx",
+      "KeyType": "4096"
+    }
+  }
+}

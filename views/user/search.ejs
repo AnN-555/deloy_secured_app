@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Search - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/profile">Profile</a>
+        <a href="/user/search" class="active">Search</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <h2>🔍 Search Drinks or Users</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">Try searching for drinks or SQL injection: <code>' OR '1'='1</code></p>
+
+      <form action="/user/search" method="POST" style="display:flex;gap:12px;align-items:end;">
+        <div style="flex:1;">
+          <label>Search</label>
+          <input type="text" name="q" placeholder="Search..." value="<%= query %>" required>
+        </div>
+        <button type="submit">Search</button>
+      </form>
+
+      <% if (results.length > 0) { %>
+        <div class="table-wrapper" style="margin-top:24px;">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Username</th><th>Email</th></tr>
+            </thead>
+            <tbody>
+              <% results.forEach(r => { %>
+                <tr><td><%= r.id %></td><td><strong><%= r.username %></strong></td><td><%= r.email %></td></tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else if (query) { %>
+        <div class="alert alert-warning" style="margin-top:20px;">No results found for "<%= query %>"</div>
+      <% } %>
+    </div>
+  </div>
+</body>
+</html>

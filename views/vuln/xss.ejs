@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A3: XSS - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/xss" class="active">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <span class="vuln-badge critical">⚠ A3: Cross-site Scripting</span>
+      <h2>⭐ Leave a Review</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        Share your experience with our drinks. Try XSS: <code>&lt;script&gt;alert('XSS')&lt;/script&gt;</code>
+      </p>
+
+      <form action="/vuln/xss" method="POST">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div>
+            <label>Your Name</label>
+            <input type="text" name="name" placeholder="Enter your name" value="<%= name %>" required>
+          </div>
+        </div>
+        <label>Your Review</label>
+        <textarea name="comment" rows="3" placeholder="Write your review..." required></textarea>
+        <button type="submit" style="margin-top:8px;">Submit Review</button>
+      </form>
+
+      <% if (output) { %>
+        <div style="margin-top:24px;">
+          <h3 style="margin-bottom:12px;color:var(--text-muted);">Your Review Preview:</h3>
+          <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:20px;font-size:15px;">
+            <%- output %>
+          </div>
+          <div class="alert alert-danger" style="margin-top:12px;">
+            ⚠ XSS vulnerability! Your script could execute in other users' browsers.
+          </div>
+        </div>
+      <% } %>
+    </div>
+
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);">💡 Hint - XSS</h3>
+      <p style="color:var(--text-muted);">Try: <code>&lt;script&gt;alert(document.cookie)&lt;/script&gt;</code> to steal session cookies</p>
+      <p style="color:var(--text-muted);margin-top:8px;">Try: <code>&lt;img src=x onerror=alert(1)&gt;</code> as alternative payload</p>
+    </div>
+  </div>
+</body>
+</html>

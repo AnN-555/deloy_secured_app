@@ -63,7 +63,7 @@
       <div class="alert alert-danger" style="margin-top:16px;">
         <div>
           <strong>Hardcoded session secret:</strong> <code>devsecret</code><br>
-          <span style="font-size:13px;">An attacker who knows this secret can use tools like <code>node-cookie-signature</code> to forge any session cookie and impersonate any user — including admin.</span>
+          <span style="font-size:13px;">Session cookie được sign bằng <code>keygrip</code> (không phải HMAC đơn giản). Thực tế attack vector: <strong>SQLi bypass</strong> (<code>admin'--</code>) hoặc <strong>brute force</strong> không bị chặn.</span>
         </div>
       </div>
 

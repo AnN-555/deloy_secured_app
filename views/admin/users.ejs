@@ -40,8 +40,18 @@
                   <td><strong><%= u.username %></strong></td>
                   <td><%= u.email %></td>
                   <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
-                  <td style="color:var(--success);">$<%= u.balance %></td>
-                  <td><a href="/admin/user/<%= u.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">Edit</a></td>
+                  <td>
+                    <form action="/admin/user/<%= u.id %>/balance" method="POST" style="display:flex;gap:4px;align-items:center;">
+                      <input type="number" name="balance" value="<%= u.balance %>" style="width:80px;padding:4px;" />
+                      <button type="submit" class="btn secondary" style="padding:4px 8px;font-size:11px;">Update</button>
+                    </form>
+                  </td>
+                  <td>
+                    <a href="/admin/user/<%= u.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">Edit</a>
+                    <form action="/admin/user/<%= u.id %>/delete" method="POST" style="display:inline;" onsubmit="return confirm('Delete user <%= u.username %>?')">
+                      <button type="submit" class="btn danger" style="padding:6px 12px;font-size:12px;">Delete</button>
+                    </form>
+                  </td>
                 </tr>
               <% }); %>
             <% } %>

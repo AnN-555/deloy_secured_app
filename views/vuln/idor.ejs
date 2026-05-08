@@ -13,9 +13,8 @@
       <div class="nav-links">
         <a href="/user/dashboard">Home</a>
         <a href="/user/menu">Menu</a>
-        <a href="/user/cart">Cart</a>
-        <a href="/user/orders">Orders</a>
         <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/auth">A2</a>
         <a href="/vuln/xss">A3</a>
         <a href="/vuln/idor" class="active">A4</a>
         <a href="/vuln/config">A5</a>
@@ -28,43 +27,80 @@
 
     <div class="card">
       <span class="vuln-badge critical">⚠ A4: Insecure Direct Object Reference</span>
-      <h2>📋 My Orders</h2>
-      <p style="color:var(--text-muted);margin-bottom:20px;">
-        View your order history. Try accessing order ID 2 directly to see if there's an IDOR vulnerability.
+      <h2>📋 All Orders</h2>
+      <p style="color:var(--text-muted);margin-bottom:12px;">
+        Endpoint <code>/user/order/:id</code> has no ownership check — any logged-in user can view any order by changing the ID in the URL.
       </p>
+
+      <div class="alert alert-warning" style="margin-bottom:20px;">
+        Your user ID is <strong>#<%= currentUserId %></strong>. Orders belonging to other users are highlighted below.
+      </div>
 
       <div class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Order ID</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr>
+            <tr><th>Order ID</th><th>Owner ID</th><th>Date</th><th>Total</th><th>Status</th><th>Action</th></tr>
           </thead>
           <tbody>
             <% if (!orders || orders.length === 0) { %>
-              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No orders found</td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No orders in database yet. Place an order first.</td></tr>
             <% } else { %>
               <% orders.forEach(function(order) { %>
-                <tr>
+                <% var isOwn = order.user_id == currentUserId; %>
+                <tr style="<%= !isOwn ? 'background:rgba(255,107,107,0.05);' : '' %>">
                   <td><strong>#<%= order.id %></strong></td>
-                  <td><%= new Date(order.order_date).toLocaleDateString() %></td>
-                  <td style="color:var(--success);">$<%= order.total.toFixed(2) %></td>
-                  <td><span class="badge" style="background:rgba(253,203,110,0.2);color:var(--warning);"><%= order.status %></span></td>
-                  <td><a href="/user/order/<%= order.id %>" class="btn secondary" style="padding:6px 12px;font-size:12px;">View →</a></td>
+                  <td>
+                    #<%= order.user_id %>
+                    <% if (!isOwn) { %><span class="badge badge-admin" style="margin-left:6px;">Other</span><% } else { %><span class="badge badge-user" style="margin-left:6px;">Mine</span><% } %>
+                  </td>
+                  <td><%= order.order_date ? new Date(order.order_date).toLocaleDateString() : '—' %></td>
+                  <td style="color:var(--success);">$<%= order.total ? order.total.toFixed(2) : '0.00' %></td>
+                  <td><span class="badge" style="background:rgba(212,165,116,0.15);color:var(--primary-light);"><%= order.status %></span></td>
+                  <td>
+                    <a href="/user/order/<%= order.id %>" class="btn secondary" style="padding:6px 14px;font-size:12px;">
+                      View →
+                    </a>
+                  </td>
                 </tr>
               <% }); %>
             <% } %>
           </tbody>
         </table>
       </div>
+    </div>
 
-      <div class="alert alert-warning" style="margin-top:20px;">
-        ⚠ Try accessing <code>/vuln/orders/2</code> or <code>/vuln/orders/3</code> directly to see other users' orders!
+    <!-- Direct access tool -->
+    <div class="card">
+      <h3 style="margin-bottom:12px;">🎯 Direct Object Access</h3>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Manually enter any order ID to access it — the server performs no authorization check.
+      </p>
+      <div style="display:flex;gap:12px;align-items:flex-end;">
+        <div style="flex:1;">
+          <label>Order ID</label>
+          <input type="number" id="orderId" placeholder="Enter any order ID (1, 2, 3...)" min="1" style="margin-bottom:0;">
+        </div>
+        <button onclick="accessOrder()" style="margin-bottom:0;">Access Order</button>
+      </div>
+      <div class="alert alert-danger" style="margin-top:16px;">
+        ⚠ Vulnerable code: <code>WHERE o.id = <%= '${req.params.id}' %></code> — no <code>AND user_id = ?</code> check.
       </div>
     </div>
 
     <div class="card" style="border-color:rgba(255,107,107,0.3);">
-      <h3 style="color:var(--danger);">💡 Hint - IDOR</h3>
-      <p style="color:var(--text-muted);">Change the order ID in URL to access orders belonging to other users.</p>
+      <h3 style="color:var(--danger);margin-bottom:8px;">💡 Hint — IDOR</h3>
+      <p style="color:var(--text-muted);">The fix: add <code>AND user_id = req.session.userId</code> to the query, or verify <code>order.user_id === req.session.userId</code> before returning the response.</p>
     </div>
   </div>
+
+  <script>
+    function accessOrder() {
+      const id = document.getElementById('orderId').value;
+      if (id) window.location.href = '/user/order/' + id;
+    }
+    document.getElementById('orderId').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') accessOrder();
+    });
+  </script>
 </body>
 </html>

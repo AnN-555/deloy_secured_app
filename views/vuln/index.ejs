@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Exploit Search - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/vuln" class="active">Exploit</a>
+      </div>
+      <div class="nav-right">
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div class="card">
+      <span class="vuln-badge critical">⚠ Vulnerability Testing Lab</span>
+      <h2>🔍 Exploit Search</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        Select vulnerability type and enter payload to exploit
+      </p>
+
+      <form action="/vuln" method="POST" id="exploitForm">
+        <div style="display:flex;gap:12px;align-items:end;">
+          <div>
+            <label>Vulnerability Type</label>
+            <select name="type" id="vulnType" onchange="updatePayloads()" style="padding:10px;min-width:150px;">
+              <option value="sqli" <%= type === 'sqli' ? 'selected' : '' %>>SQL Injection (A1)</option>
+              <option value="xss" <%= type === 'xss' ? 'selected' : '' %>>XSS (A3)</option>
+              <option value="idor" <%= type === 'idor' ? 'selected' : '' %>>IDOR (A4)</option>
+              <option value="config" <%= type === 'config' ? 'selected' : '' %>>Config Exposure (A5)</option>
+              <option value="data" <%= type === 'data' ? 'selected' : '' %>>Data Exposure (A6)</option>
+            </select>
+          </div>
+
+          <div style="flex:1;" id="searchContainer">
+            <label id="searchLabel">Username</label>
+            <input type="text" name="search" id="searchInput" placeholder="Enter payload..." value="<%= payload || '' %>" autofocus>
+          </div>
+
+          <div id="xssFields" style="display:none;flex:1;">
+            <label>Name</label>
+            <input type="text" name="name" id="xssName" placeholder="Your name">
+          </div>
+
+          <div id="xssCommentField" style="display:none;flex:1;">
+            <label>Comment</label>
+            <input type="text" name="comment" id="xssComment" placeholder="XSS payload...">
+          </div>
+
+          <button type="submit">Execute</button>
+        </div>
+      </form>
+    </div>
+
+    <% if (type === 'sqli') { %>
+    <div class="card">
+      <h3 style="color:var(--danger);">📊 SQL Injection Results</h3>
+      <% if (error) { %>
+        <div class="alert alert-danger" style="margin-top:12px;">
+          <strong>SQL Error:</strong> <%= error %>
+        </div>
+        <div style="margin-top:12px;font-family:monospace;font-size:12px;background:rgba(0,0,0,0.3);padding:12px;border-radius:8px;word-break:break-all;">
+          <strong>Query:</strong> <%= sql %>
+        </div>
+      <% } %>
+      <% if (results && results.length > 0) { %>
+        <div class="table-wrapper" style="margin-top:16px;">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Balance</th></tr>
+            </thead>
+            <tbody>
+              <% results.forEach(function(r) { %>
+                <tr>
+                  <td><%= r.id %></td>
+                  <td><strong><%= r.username %></strong></td>
+                  <td><%= r.email %></td>
+                  <td><span class="badge badge-<%= r.role %>"><%= r.role %></span></td>
+                  <td style="color:var(--success);">$<%= r.balance %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-success" style="margin-top:12px;">
+          ✓ Query returned <%= results.length %> row(s)
+        </div>
+      <% } %>
+      <% if (query && !error && (!results || results.length === 0)) { %>
+        <div class="alert alert-warning" style="margin-top:12px;">No results found</div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% if (type === 'xss' && output) { %>
+    <div class="card">
+      <h3 style="color:var(--danger);">⚠ XSS Executed</h3>
+      <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:12px;padding:20px;font-size:15px;margin-top:12px;">
+        <%- output %>
+      </div>
+      <div class="alert alert-danger" style="margin-top:12px;">
+        ⚠ XSS vulnerability! Script executed: <code><%= payload %></code>
+      </div>
+    </div>
+    <% } %>
+
+    <% if (type === 'idor') { %>
+    <div class="card">
+      <h3 style="color:var(--danger);">🔓 IDOR Results</h3>
+      <p style="color:var(--text-muted);margin-bottom:12px;">Order ID: <strong><%= query %></strong></p>
+      <% if (error) { %>
+        <div class="alert alert-danger"><%= error %></div>
+      <% } %>
+      <% if (results && results.length > 0) { %>
+        <div class="table-wrapper" style="margin-top:12px;">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>User ID</th><th>Total</th><th>Status</th><th>Date</th><th>Address</th></tr>
+            </thead>
+            <tbody>
+              <% results.forEach(function(o) { %>
+                <tr>
+                  <td><%= o.id %></td>
+                  <td><%= o.user_id %></td>
+                  <td>$<%= o.total %></td>
+                  <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
+                  <td><%= o.order_date %></td>
+                  <td><%= o.delivery_address %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } else if (!error) { %>
+        <div class="alert alert-warning">No orders found for ID: <%= query %></div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% if (type === 'config') { %>
+    <div class="card">
+      <h3 style="color:var(--danger);">🔑 Exposed Configuration</h3>
+      <% if (results && results.length > 0) { %>
+        <div class="table-wrapper" style="margin-top:12px;">
+          <table>
+            <thead>
+              <tr><th>Name</th><th>Value</th></tr>
+            </thead>
+            <tbody>
+              <% results.forEach(function(c) { %>
+                <tr>
+                  <td><strong><%= c.name %></strong></td>
+                  <td style="font-family:monospace;color:var(--danger);"><%= c.value %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-danger" style="margin-top:12px;">
+          ⚠ Hardcoded secrets exposed in database!
+        </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% if (type === 'data') { %>
+    <div class="card">
+      <h3 style="color:var(--danger);">📋 User Data Exposure</h3>
+      <% if (results && results.length > 0) { %>
+        <div class="table-wrapper" style="margin-top:12px;">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Balance</th></tr>
+            </thead>
+            <tbody>
+              <% results.forEach(function(u) { %>
+                <tr>
+                  <td><%= u.id %></td>
+                  <td><strong><%= u.username %></strong></td>
+                  <td><%= u.email %></td>
+                  <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
+                  <td style="color:var(--success);">$<%= u.balance %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+        <div class="alert alert-warning" style="margin-top:12px;">
+          ⚠ All users exposed. Note: passwords stored in plaintext!
+        </div>
+      <% } %>
+    </div>
+    <% } %>
+
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);">💉 Payload Library</h3>
+      <div id="payloadGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+
+        <div sqli xss idor config data style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">SQL: OR (all rows)</strong>
+          <input type="text" readonly value="' OR '1'='1" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+        <div sqli style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">SQL: UNION dump</strong>
+          <input type="text" readonly value="' UNION SELECT id,username,email,role,balance FROM users--" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+<div xss style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">XSS: Script alert</strong>
+          <input type="text" readonly value="<script>alert('XSS')</script>" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+        <div xss style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">XSS: Cookie steal</strong>
+          <input type="text" readonly value="<script>alert(document.cookie)</script>" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+        <div xss style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">XSS: IMG onerror</strong>
+          <input type="text" readonly value="<img src=x onerror=alert(1)>" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+        <div idor style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">IDOR: Order ID 1</strong>
+          <input type="text" readonly value="1" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+        <div idor style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">IDOR: Order ID 2</strong>
+          <input type="text" readonly value="2" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+        <div config data style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">Config: View secrets</strong>
+          <input type="text" readonly value="config" onclick="fillPayload(this)" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function updatePayloads() {
+      const type = document.getElementById('vulnType').value;
+      const searchContainer = document.getElementById('searchContainer');
+      const xssFields = document.getElementById('xssFields');
+      const xssCommentField = document.getElementById('xssCommentField');
+      const searchLabel = document.getElementById('searchLabel');
+      const searchInput = document.getElementById('searchInput');
+      const xssName = document.getElementById('xssName');
+      const xssComment = document.getElementById('xssComment');
+
+      searchContainer.style.display = 'none';
+      xssFields.style.display = 'none';
+      xssCommentField.style.display = 'none';
+
+      if (type === 'xss') {
+        xssFields.style.display = 'flex';
+        xssCommentField.style.display = 'flex';
+        xssFields.querySelector('div').style.flex = '1';
+        xssCommentField.style.flex = '1';
+        xssName.required = true;
+        xssComment.required = true;
+      } else if (type === 'sqli' || type === 'idor') {
+        searchContainer.style.display = 'block';
+        searchInput.required = true;
+        if (type === 'sqli') {
+          searchLabel.textContent = 'Username / SQL Payload';
+          searchInput.placeholder = "' OR '1'='1";
+        } else {
+          searchLabel.textContent = 'Order ID';
+          searchInput.placeholder = '1';
+        }
+      } else {
+        searchContainer.style.display = 'block';
+        searchInput.required = false;
+        searchLabel.textContent = 'Action (or leave empty)';
+        searchInput.placeholder = type === 'config' || type === 'data' ? 'Press Execute directly' : '';
+      }
+
+      document.querySelectorAll('#payloadGrid > div').forEach(el => {
+        const types = el.getAttribute('sqli') || el.getAttribute('xss') || el.getAttribute('idor') || el.getAttribute('config') || el.getAttribute('data');
+        if (types && types.includes(type)) {
+          el.style.display = 'block';
+        } else {
+          el.style.display = 'none';
+        }
+      });
+    }
+
+    function fillPayload(input) {
+      const type = document.getElementById('vulnType').value;
+      const payload = input.value;
+
+      if (type === 'xss') {
+        document.getElementById('xssComment').value = payload;
+      } else {
+        document.getElementById('searchInput').value = payload;
+      }
+    }
+
+    updatePayloads();
+  </script>
+</body>
+</html>

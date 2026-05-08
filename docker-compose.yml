@@ -14,6 +14,8 @@ services:
       - "traefik.http.routers.milktea.tls.certresolver=letsencrypt"
     networks:
       - traefik_default
+    volumes:
+      - ./data.db:/app/data.db
 
 networks:
   traefik_default:

@@ -13,9 +13,8 @@
       <div class="nav-links">
         <a href="/user/dashboard">Home</a>
         <a href="/user/menu">Menu</a>
-        <a href="/user/cart">Cart</a>
-        <a href="/user/orders">Orders</a>
         <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/auth">A2</a>
         <a href="/vuln/xss">A3</a>
         <a href="/vuln/idor">A4</a>
         <a href="/vuln/config" class="active">A5</a>
@@ -26,45 +25,141 @@
       </div>
     </nav>
 
+    <!-- Vector 1: Technology Disclosure -->
     <div class="card">
       <span class="vuln-badge critical">⚠ A5: Security Misconfiguration</span>
-      <h2>⚙️ System Configuration</h2>
-      <p style="color:var(--text-muted);margin-bottom:20px;">
-        Application configuration panel. Sensitive credentials are stored here.
+      <h2>⚙️ Vector 1 — Technology Disclosure</h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Response header <code>X-Powered-By: Express</code> lộ tech stack. Attacker dùng <code>curl -I</code> hoặc Burp để đọc.
       </p>
 
-      <div class="alert alert-danger">
-        ⚠ <strong>WARNING:</strong> Sensitive configuration values are publicly exposed!
+      <div style="background:rgba(0,0,0,0.4);border-radius:10px;padding:16px;font-family:monospace;font-size:12px;line-height:2;margin-bottom:16px;">
+        <span style="color:var(--text-muted);">$ curl -I http://localhost:3000/login</span><br>
+        <span style="color:var(--text-muted);">HTTP/1.1 200 OK</span><br>
+        <span style="color:var(--text-muted);">Content-Type: text/html</span><br>
+        <span style="color:var(--danger);font-weight:bold;">X-Powered-By: Express</span>
+        <span style="color:var(--text-muted);"> ← lộ framework + version</span>
       </div>
 
-      <div class="table-wrapper" style="margin-top:20px;">
+      <h3 style="margin-bottom:12px;">Missing Security Headers</h3>
+      <div class="table-wrapper">
         <table>
           <thead>
-            <tr><th>Key</th><th>Value</th><th>Risk</th></tr>
+            <tr><th>Header</th><th>Giá trị hiện tại</th><th>Hậu quả nếu thiếu</th></tr>
           </thead>
           <tbody>
-            <% if (!configs || configs.length === 0) { %>
-              <tr><td colspan="3" style="text-align:center;color:var(--text-muted);">No configuration found</td></tr>
-            <% } else { %>
-              <% configs.forEach(function(cfg) {
-                var sensitive = cfg.name.indexOf('pass') !== -1 || cfg.name.indexOf('key') !== -1 || cfg.name.indexOf('secret') !== -1 || cfg.name.indexOf('db_') !== -1;
-              %>
-                <tr>
-                  <td><code><%= cfg.name %></code></td>
-                  <td style="font-family:monospace;color:<%= sensitive ? 'var(--danger)' : 'var(--text)' %>;"><%= cfg.value %></td>
-                  <td><% if (sensitive) { %><span class="badge badge-admin">Sensitive</span><% } else { %><span class="badge badge-user">Safe</span><% } %></td>
-                </tr>
-              <% }); %>
-            <% } %>
+            <tr>
+              <td><code>X-Powered-By</code></td>
+              <td style="color:var(--danger);font-family:monospace;">Express</td>
+              <td style="color:var(--text-muted);font-size:13px;">Lộ framework → attacker tìm CVE theo version</td>
+            </tr>
+            <% Object.entries(responseHeaders).forEach(function([header, value]) {
+               if (header === 'X-Powered-By') return;
+            %>
+            <tr>
+              <td><code><%= header %></code></td>
+              <td style="color:var(--danger);font-family:monospace;"><%= value %></td>
+              <td style="color:var(--text-muted);font-size:13px;">
+                <% if (header === 'X-Frame-Options') { %>Cho phép <strong>clickjacking</strong> — site bị nhúng vào iframe
+                <% } else if (header === 'Content-Security-Policy') { %>Khuếch đại <strong>XSS</strong> — không giới hạn nguồn script
+                <% } else if (header === 'X-Content-Type-Options') { %><strong>MIME sniffing</strong> — browser tự đoán content-type
+                <% } else if (header === 'Strict-Transport-Security') { %><strong>HTTPS không bắt buộc</strong> — dễ bị MITM
+                <% } else if (header === 'Referrer-Policy') { %><strong>URL leak</strong> qua Referer header
+                <% } %>
+              </td>
+            </tr>
+            <% }); %>
           </tbody>
         </table>
       </div>
     </div>
 
-    <div class="card" style="border-color:rgba(255,107,107,0.3);">
-      <h3 style="color:var(--danger);">💡 Exposed Secrets</h3>
-      <p style="color:var(--text-muted);">Database passwords, API keys, and secrets should NEVER be stored in plain text or displayed in the UI!</p>
+    <!-- Vector 2: Exposed Debug Endpoint -->
+    <div class="card">
+      <h2>⚙️ Vector 2 — Exposed Debug Endpoint</h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Developer để quên endpoint <code>/debug</code> trên production. Không cần đăng nhập — trả về thông tin nội bộ server.
+      </p>
+
+      <div style="display:flex;gap:12px;align-items:center;margin-bottom:16px;">
+        <a href="/debug" target="_blank" class="btn" style="padding:10px 20px;">
+          Mở /debug →
+        </a>
+        <code style="color:var(--text-muted);font-size:12px;">curl http://localhost:3000/debug</code>
+      </div>
+
+      <div style="background:rgba(0,0,0,0.4);border-radius:10px;padding:16px;font-family:monospace;font-size:12px;line-height:1.8;">
+        <span style="color:var(--text-muted);">// Response từ /debug (không cần auth):</span><br>
+        {<br>
+        &nbsp;&nbsp;<span style="color:var(--text-muted);">"node_version":</span> <span style="color:var(--accent);">"v20.x"</span>,<br>
+        &nbsp;&nbsp;<span style="color:var(--text-muted);">"db_path":</span> <span style="color:var(--danger);">"/app/data.db"</span>,<br>
+        &nbsp;&nbsp;<span style="color:var(--danger);font-weight:bold;">"session_secret": "devsecret"</span>,<br>
+        &nbsp;&nbsp;<span style="color:var(--text-muted);">"env":</span> { <span style="color:var(--accent);">"NODE_ENV": "development"</span> },<br>
+        &nbsp;&nbsp;<span style="color:var(--danger);">"endpoints":</span> <span style="color:var(--text-muted);">["/admin/*", "/api/*", ...]</span><br>
+        }
+      </div>
+
+      <div class="alert alert-danger" style="margin-top:16px;">
+        ⚠ <code>session_secret</code> lộ qua <code>/debug</code> → attacker forge session cookie → impersonate admin (xem A2)
+      </div>
     </div>
+
+    <!-- Vector 3: Exposed App Config -->
+    <div class="card">
+      <h2>⚙️ Vector 3 — Hardcoded Secrets trong Database</h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Secrets lưu plaintext trong bảng <code>app_config</code>, hiển thị qua endpoint không bảo vệ đúng cách.
+      </p>
+
+      <div class="table-wrapper">
+        <table>
+          <thead>
+            <tr><th>Key</th><th>Value</th><th>Có thể dùng để</th></tr>
+          </thead>
+          <tbody>
+            <% configs.forEach(function(cfg) {
+              var sensitive = ['pass','key','secret','db_'].some(function(k){ return cfg.name.indexOf(k) !== -1; });
+            %>
+              <tr>
+                <td><code><%= cfg.name %></code></td>
+                <td style="font-family:monospace;font-weight:<%= sensitive ? '600' : '400' %>;color:<%= sensitive ? 'var(--danger)' : 'var(--text-muted)' %>;">
+                  <%= cfg.value %>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);">
+                  <% if (cfg.name === 'db_pass') { %>Kết nối trực tiếp vào database
+                  <% } else if (cfg.name === 'api_key') { %>Gọi API của bên thứ 3, phát sinh chi phí
+                  <% } else if (cfg.name === 'db_user') { %>Kết hợp với db_pass để truy cập DB
+                  <% } else if (cfg.name === 'debug_mode') { %>Bật verbose errors — lộ stack trace
+                  <% } else { %>—<% } %>
+                </td>
+              </tr>
+            <% }); %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Clickjacking Demo -->
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h2>⚙️ Vector 4 — Clickjacking (Missing X-Frame-Options)</h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Vì không có header <code>X-Frame-Options</code>, site có thể bị nhúng vào iframe trên trang của attacker.
+        Login form bên dưới đang chạy thật trong một iframe:
+      </p>
+
+      <div style="position:relative;border:2px dashed var(--danger);border-radius:10px;padding:0;overflow:hidden;margin-bottom:16px;">
+        <div style="background:rgba(255,107,107,0.1);padding:8px 14px;font-size:12px;color:var(--danger);font-weight:600;">
+          ⚠ Trang của attacker — login form thật đang bị nhúng bên dưới (iframe)
+        </div>
+        <iframe src="/login" style="width:100%;height:320px;border:none;display:block;" scrolling="no"></iframe>
+      </div>
+
+      <div class="alert alert-warning">
+        Attacker overlay một lớp transparent lên iframe → user nghĩ đang click vào nút của attacker, thực ra đang submit form login của app thật.
+        Fix: thêm header <code>X-Frame-Options: DENY</code> hoặc <code>Content-Security-Policy: frame-ancestors 'none'</code>
+      </div>
+    </div>
+
   </div>
 </body>
 </html>

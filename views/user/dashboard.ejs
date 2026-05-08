@@ -15,12 +15,14 @@
         <a href="/user/menu">Menu</a>
         <a href="/user/cart">Cart</a>
         <a href="/user/orders">Orders</a>
-        <a href="/user/profile">Profile</a>
-        <a href="/vuln/sqli">A1</a>
-        <a href="/vuln/xss">A3</a>
-        <a href="/vuln/idor">A4</a>
-        <a href="/vuln/config">A5</a>
-        <a href="/vuln/data">A6</a>
+        <a href="/user/reviews">Reviews</a>
+        <a href="/vuln">Exploit Lab</a>
+      </div>
+      <div class="nav-search">
+        <form action="/user/search" method="POST">
+          <input type="text" name="q" placeholder="Search drinks..." autocomplete="off">
+          <button type="submit">Search</button>
+        </form>
       </div>
       <div class="nav-right">
         <span class="user-info"><%= user.username %></span>

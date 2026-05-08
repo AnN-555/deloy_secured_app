@@ -38,7 +38,7 @@ router.get('/menu', requireAuth, (req, res) => {
 
   db.all(sql, params, (err, drinks) => {
     db.all('SELECT * FROM drinks GROUP BY category', [], (err, categories) => {
-      res.render('user/menu', { drinks, categories, selectedCategory: category });
+      res.render('user/menu', { drinks, categories, selectedCategory: category, user: req.session });
     });
   });
 });
@@ -47,13 +47,13 @@ router.get('/cart', requireAuth, (req, res) => {
   const db = req.db;
   db.get('SELECT * FROM carts WHERE user_id = ?', [req.session.userId], (err, cart) => {
     if (!cart) {
-      return res.render('user/cart', { cartItems: [], cart: null, total: 0 });
+      return res.render('user/cart', { cartItems: [], cart: null, total: 0, user: req.session });
     }
     db.all(`SELECT ci.*, d.name, d.price, d.image FROM cart_items ci
             JOIN drinks d ON ci.drink_id = d.id
             WHERE ci.cart_id = ?`, [cart.id], (err, cartItems) => {
       const total = cartItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-      res.render('user/cart', { cartItems, cart, total });
+      res.render('user/cart', { cartItems, cart, total, user: req.session });
     });
   });
 });
@@ -114,20 +114,26 @@ router.post('/cart/remove', requireAuth, (req, res) => {
 router.get('/orders', requireAuth, (req, res) => {
   const db = req.db;
   db.all('SELECT * FROM orders WHERE user_id = ? ORDER BY order_date DESC', [req.session.userId], (err, orders) => {
-    res.render('user/orders', { orders });
+    res.render('user/orders', { orders, user: req.session });
   });
 });
 
 router.get('/order/:id', requireAuth, (req, res) => {
   const db = req.db;
-  db.get('SELECT * FROM orders WHERE id = ? AND user_id = ?', [req.params.id, req.session.userId], (err, order) => {
-    if (!order) return res.status(403).send('Access denied');
-    db.all(`SELECT oi.*, d.name, d.image FROM order_items oi
-            JOIN drinks d ON oi.drink_id = d.id
-            WHERE oi.order_id = ?`, [order.id], (err, items) => {
-      res.render('user/order-detail', { order, items });
-    });
-  });
+  // IDOR: ownership check removed — any user can view any order by changing the ID
+  db.get(
+    `SELECT o.*, u.username AS owner_username FROM orders o
+     JOIN users u ON o.user_id = u.id WHERE o.id = ?`,
+    [req.params.id],
+    (err, order) => {
+      if (!order) return res.status(404).send('Order not found');
+      db.all(`SELECT oi.*, d.name, d.image FROM order_items oi
+              JOIN drinks d ON oi.drink_id = d.id
+              WHERE oi.order_id = ?`, [order.id], (err, items) => {
+        res.render('user/order-detail', { order, items, currentUserId: req.session.userId });
+      });
+    }
+  );
 });
 
 router.post('/order/checkout', requireAuth, (req, res) => {
@@ -177,6 +183,19 @@ router.post('/order/checkout', requireAuth, (req, res) => {
   });
 });
 
+router.get('/reviews', requireAuth, (req, res) => {
+  const db = req.db;
+  db.all(
+    `SELECT r.*, u.username FROM reviews r
+     LEFT JOIN users u ON r.user_id = u.id
+     ORDER BY r.created_at DESC`,
+    [],
+    (err, reviews) => {
+      res.render('user/reviews', { reviews: reviews || [], user: req.session });
+    }
+  );
+});
+
 router.get('/profile', requireAuth, (req, res) => {
   const db = req.db;
   db.get('SELECT id, username, email, role, balance FROM users WHERE id = ?', [req.session.userId], (err, user) => {
@@ -185,16 +204,18 @@ router.get('/profile', requireAuth, (req, res) => {
 });
 
 router.get('/search', requireAuth, (req, res) => {
-  res.render('user/search', { results: [], query: '', error: null });
+  const sql = `SELECT * FROM drinks WHERE name LIKE '%%'`;
+  res.render('user/search', { drinks: [], query: '', sql, error: null, user: req.session });
 });
 
 router.post('/search', requireAuth, (req, res) => {
   const { q } = req.body;
   const db = req.db;
-  const sql = `SELECT id, username, email FROM users WHERE username LIKE '%${q}%'`;
-  db.all(sql, [], (err, results) => {
-    if (err) results = [];
-    res.render('user/search', { results, query: q, error: null });
+  const sql = `SELECT * FROM drinks WHERE name LIKE '%${q}%'`;
+  let error = null;
+  db.all(sql, [], (err, drinks) => {
+    if (err) { error = err.message; drinks = []; }
+    res.render('user/search', { drinks, query: q, sql, error, user: req.session });
   });
 });
 

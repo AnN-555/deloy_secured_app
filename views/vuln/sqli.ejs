@@ -13,9 +13,8 @@
       <div class="nav-links">
         <a href="/user/dashboard">Home</a>
         <a href="/user/menu">Menu</a>
-        <a href="/user/cart">Cart</a>
-        <a href="/user/orders">Orders</a>
         <a href="/vuln/sqli" class="active">A1</a>
+        <a href="/vuln/auth">A2</a>
         <a href="/vuln/xss">A3</a>
         <a href="/vuln/idor">A4</a>
         <a href="/vuln/config">A5</a>
@@ -28,22 +27,35 @@
 
     <div class="card">
       <span class="vuln-badge critical">⚠ A1: SQL Injection</span>
-      <h2>🔍 Search Customers</h2>
-      <p style="color:var(--text-muted);margin-bottom:20px;">
-        Search customer database by username. Try SQL injection: <code>' OR '1'='1</code>
+      <h2>🔍 Customer Search</h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Vulnerable search endpoint. Input is concatenated directly into SQL query.
       </p>
+
+      <div class="alert alert-warning" style="margin-bottom:16px;font-family:monospace;font-size:12px;word-break:break-all;">
+        <strong>Vulnerable Query:</strong> <%= sql %>
+      </div>
 
       <form action="/vuln/sqli" method="POST" style="display:flex;gap:12px;align-items:end;">
         <div style="flex:1;">
-          <label>Username</label>
-          <input type="text" name="search" placeholder="Search customers..." value="<%= query %>" required>
+          <label>Search username</label>
+          <input type="text" name="search" placeholder="Enter username or SQL injection payload..." value="<%= query %>" required autofocus>
         </div>
         <button type="submit">Search</button>
+        <button type="submit" name="search" value="" class="btn secondary">Reset</button>
       </form>
 
-      <% if (!results || results.length === 0) { %>
+      <% if (error) { %>
+        <div class="alert alert-danger" style="margin-top:16px;">
+          <strong>SQL Error:</strong> <%= error %>
+        </div>
+      <% } %>
+
+      <% if (query && !error && results.length === 0) { %>
         <div class="alert alert-warning" style="margin-top:16px;">No customers found</div>
-      <% } else { %>
+      <% } %>
+
+      <% if (results.length > 0) { %>
         <div class="table-wrapper" style="margin-top:24px;">
           <table>
             <thead>
@@ -69,9 +81,35 @@
     </div>
 
     <div class="card" style="border-color:rgba(255,107,107,0.3);">
-      <h3 style="color:var(--danger);">💡 Hint - SQL Injection</h3>
-      <p style="color:var(--text-muted);">Try: <code>' OR '1'='1</code> to see all customers</p>
-      <p style="color:var(--text-muted);margin-top:8px;">Try: <code>admin' UNION SELECT 1,2,3,4,5--</code> for UNION attack</p>
+      <h3 style="color:var(--danger);">💉 SQL Injection Payloads</h3>
+      <p style="color:var(--text-muted);margin-bottom:16px;">Try these payloads in the search bar:</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">Boolean-based (OR)</strong>
+          <input type="text" readonly value="' OR '1'='1" onclick="this.select()" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+          <small style="color:var(--text-muted);">Returns all rows (always true)</small>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">Comment</strong>
+          <input type="text" readonly value="admin'--" onclick="this.select()" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+          <small style="color:var(--text-muted);">Bypass password check</small>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">UNION (5 columns)</strong>
+          <input type="text" readonly value="' UNION SELECT 1,2,3,4,5--" onclick="this.select()" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+          <small style="color:var(--text-muted);">Test UNION injection</small>
+        </div>
+
+        <div style="background:rgba(0,0,0,0.2);padding:12px;border-radius:8px;">
+          <strong style="color:var(--success);">UNION (all users)</strong>
+          <input type="text" readonly value="' UNION SELECT id,username,email,role,balance FROM users--" onclick="this.select()" style="width:100%;margin-top:8px;padding:6px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;">
+          <small style="color:var(--text-muted);">Dump all users</small>
+        </div>
+
+      </div>
     </div>
   </div>
 </body>

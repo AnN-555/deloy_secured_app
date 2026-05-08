@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>A2: Broken Auth - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/auth" class="active">A2</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
+      </div>
+      <div class="nav-right">
+        <span class="user-info">👤 <%= sessionData.username %></span>
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Session Analysis -->
+    <div class="card">
+      <span class="vuln-badge critical">⚠ A2: Broken Authentication &amp; Session Management</span>
+      <h2>🔐 Session Analysis</h2>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        Current session data is readable and the session secret is hardcoded — anyone who knows the secret can forge a valid session cookie.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;">
+        <div class="stat-card">
+          <div class="label">User ID</div>
+          <div class="value accent" style="font-size:22px;">#<%= sessionData.userId %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Role</div>
+          <div class="value" style="font-size:22px;color:<%= sessionData.role === 'admin' ? 'var(--danger)' : 'var(--primary-light)' %>">
+            <%= sessionData.role %>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Username</div>
+          <div class="value" style="font-size:18px;"><%= sessionData.username %></div>
+        </div>
+        <div class="stat-card">
+          <div class="label">Email</div>
+          <div class="value" style="font-size:14px;word-break:break-all;"><%= sessionData.email || '—' %></div>
+        </div>
+      </div>
+
+      <h3 style="margin-bottom:12px;">Session Cookie</h3>
+      <div style="background:var(--bg-input);border:1px solid var(--border);border-radius:10px;padding:16px;font-family:monospace;font-size:12px;word-break:break-all;color:var(--danger);">
+        connect.sid = <%= sessionCookie %>
+      </div>
+
+      <div class="alert alert-danger" style="margin-top:16px;">
+        <div>
+          <strong>Hardcoded session secret:</strong> <code>devsecret</code><br>
+          <span style="font-size:13px;">An attacker who knows this secret can use tools like <code>node-cookie-signature</code> to forge any session cookie and impersonate any user — including admin.</span>
+        </div>
+      </div>
+
+      <div style="margin-top:16px;padding:16px;background:rgba(255,107,107,0.05);border:1px solid rgba(255,107,107,0.2);border-radius:10px;">
+        <h4 style="color:var(--danger);margin-bottom:10px;">Vulnerable Configuration (server.js:17)</h4>
+        <pre style="font-family:monospace;font-size:13px;color:var(--text-muted);line-height:1.6;">app.use(session({
+  secret: <span style="color:var(--danger);">'devsecret'</span>,       // ← hardcoded weak secret
+  resave: false,
+  saveUninitialized: true,
+  cookie: {
+    maxAge: 3600000,
+    <span style="color:var(--danger);">httpOnly: true</span>       // ← set, XSS không đọc được cookie
+    <span style="color:var(--danger);">// secure: not set → sent over HTTP (MITM risk)</span>
+  }
+}))</pre>
+      </div>
+    </div>
+
+    <!-- Brute Force Demo -->
+    <div class="card">
+      <h3 style="color:var(--danger);margin-bottom:4px;">🔨 Brute Force Attack Demo</h3>
+      <p style="color:var(--text-muted);margin-bottom:20px;">
+        No rate limiting, no CAPTCHA, no account lockout. An attacker can try unlimited password combinations.
+      </p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
+        <div>
+          <label>Target Username</label>
+          <input type="text" id="bfUsername" value="admin" placeholder="Username">
+        </div>
+        <div>
+          <label>Password to Try</label>
+          <input type="text" id="bfPassword" value="" placeholder="Password">
+        </div>
+      </div>
+
+      <div style="margin-bottom:16px;">
+        <label style="margin-bottom:8px;">Quick Wordlist</label>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <% ['password', '123456', 'admin', 'admin123', 'pass', 'password1', 'milktea', 'secret'].forEach(function(pw) { %>
+            <button type="button" class="btn secondary" style="padding:6px 14px;font-size:12px;" onclick="tryPassword('<%= pw %>')">
+              <%= pw %>
+            </button>
+          <% }); %>
+        </div>
+      </div>
+
+      <button onclick="runBruteForce()" style="margin-bottom:16px;">⚡ Try Login</button>
+
+      <div id="bfResult" style="display:none;">
+        <div id="bfMessage" class="alert" style="margin-bottom:12px;"></div>
+        <div style="background:rgba(0,0,0,0.3);padding:14px;border-radius:8px;font-family:monospace;font-size:12px;word-break:break-all;">
+          <strong style="color:var(--text-muted);">SQL Query executed:</strong><br>
+          <span id="bfQuery" style="color:var(--danger);"></span>
+        </div>
+      </div>
+
+      <div class="alert alert-warning" style="margin-top:8px;">
+        ⚠ The login endpoint also has SQL Injection — try username: <code>admin'--</code> with any password.
+      </div>
+    </div>
+
+    <!-- Vulnerability Summary -->
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);margin-bottom:16px;">💡 A2 Vulnerability Checklist</h3>
+      <div style="display:grid;gap:10px;">
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,107,107,0.05);border-radius:8px;">
+          <span style="color:var(--danger);font-size:18px;">✗</span>
+          <div>
+            <strong>Weak session secret</strong>
+            <p style="margin:0;font-size:13px;color:var(--text-muted);">Hardcoded <code>devsecret</code> can be brute-forced to forge session tokens.</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,107,107,0.05);border-radius:8px;">
+          <span style="color:var(--danger);font-size:18px;">✗</span>
+          <div>
+            <strong>No brute force protection</strong>
+            <p style="margin:0;font-size:13px;color:var(--text-muted);">Unlimited login attempts — no rate limiting, CAPTCHA, or account lockout.</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,107,107,0.05);border-radius:8px;">
+          <span style="color:var(--danger);font-size:18px;">✗</span>
+          <div>
+            <strong>Plaintext password comparison</strong>
+            <p style="margin:0;font-size:13px;color:var(--text-muted);">Passwords stored and compared without hashing — direct string equality check.</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,107,107,0.05);border-radius:8px;">
+          <span style="color:var(--danger);font-size:18px;">✗</span>
+          <div>
+            <strong>Cookie not Secure flag</strong>
+            <p style="margin:0;font-size:13px;color:var(--text-muted);">Session cookie is httpOnly (protected from XSS) but lacks Secure flag — transmitted over HTTP, vulnerable to MITM.</p>
+          </div>
+        </div>
+        <div style="display:flex;align-items:flex-start;gap:12px;padding:12px;background:rgba(255,107,107,0.05);border-radius:8px;">
+          <span style="color:var(--danger);font-size:18px;">✗</span>
+          <div>
+            <strong>No CSRF protection</strong>
+            <p style="margin:0;font-size:13px;color:var(--text-muted);">No CSRF tokens on any form — malicious sites can submit forms on behalf of logged-in users.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function tryPassword(pw) {
+      document.getElementById('bfPassword').value = pw;
+      runBruteForce();
+    }
+
+    async function runBruteForce() {
+      const username = document.getElementById('bfUsername').value;
+      const password = document.getElementById('bfPassword').value;
+      if (!username || !password) return;
+
+      const res = await fetch('/vuln/auth/bruteforce', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+      });
+      const data = await res.json();
+
+      const resultDiv = document.getElementById('bfResult');
+      const msgDiv = document.getElementById('bfMessage');
+      const querySpan = document.getElementById('bfQuery');
+
+      resultDiv.style.display = 'block';
+      querySpan.textContent = data.query;
+
+      if (data.success) {
+        msgDiv.className = 'alert alert-success';
+        msgDiv.textContent = '✓ ' + data.message;
+      } else {
+        msgDiv.className = 'alert alert-danger';
+        msgDiv.textContent = '✗ ' + data.message;
+      }
+    }
+  </script>
+</body>
+</html>

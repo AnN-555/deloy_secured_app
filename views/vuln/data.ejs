@@ -13,9 +13,8 @@
       <div class="nav-links">
         <a href="/user/dashboard">Home</a>
         <a href="/user/menu">Menu</a>
-        <a href="/user/cart">Cart</a>
-        <a href="/user/orders">Orders</a>
         <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/auth">A2</a>
         <a href="/vuln/xss">A3</a>
         <a href="/vuln/idor">A4</a>
         <a href="/vuln/config">A5</a>
@@ -30,26 +29,27 @@
       <span class="vuln-badge critical">⚠ A6: Sensitive Data Exposure</span>
       <h2>👥 Customer Database</h2>
       <p style="color:var(--text-muted);margin-bottom:20px;">
-        All registered customers. Passwords stored in plaintext - critical security issue!
+        Passwords are stored in <strong>plaintext</strong>. If an attacker dumps this table (e.g., via SQLi), they immediately have all credentials — no cracking required.
       </p>
 
-      <div class="alert alert-danger">
-        ⚠ <strong>CRITICAL:</strong> Customer passwords are stored in PLAINTEXT in the database!
+      <div class="alert alert-danger" style="margin-bottom:20px;">
+        ⚠ <strong>CRITICAL:</strong> Column <code>password</code> is stored and returned in plaintext!
       </div>
 
-      <div class="table-wrapper" style="margin-top:20px;">
+      <div class="table-wrapper">
         <table>
           <thead>
-            <tr><th>ID</th><th>Username</th><th>Email</th><th>Role</th><th>Balance</th></tr>
+            <tr><th>ID</th><th>Username</th><th>Password</th><th>Email</th><th>Role</th><th>Balance</th></tr>
           </thead>
           <tbody>
             <% if (!users || users.length === 0) { %>
-              <tr><td colspan="5" style="text-align:center;color:var(--text-muted);">No users found</td></tr>
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);">No users found</td></tr>
             <% } else { %>
               <% users.forEach(function(u) { %>
                 <tr>
                   <td><%= u.id %></td>
                   <td><strong><%= u.username %></strong></td>
+                  <td style="font-family:monospace;color:var(--danger);font-weight:700;"><%= u.password %></td>
                   <td><%= u.email %></td>
                   <td><span class="badge badge-<%= u.role %>"><%= u.role %></span></td>
                   <td style="color:var(--success);">$<%= u.balance %></td>
@@ -59,10 +59,25 @@
           </tbody>
         </table>
       </div>
+    </div>
 
-      <div style="margin-top:24px;padding:16px;background:var(--bg-input);border-radius:10px;border:1px solid var(--border);">
-        <h3 style="color:var(--danger);margin-bottom:8px;">What should be protected?</h3>
-        <p style="color:var(--text-muted);margin:0;">Passwords should NEVER be stored in plaintext. Use bcrypt or Argon2 hashing. Also, passwords should NEVER be returned in API responses or displayed in admin panels.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="card" style="border-color:rgba(255,107,107,0.3);">
+        <h3 style="color:var(--danger);margin-bottom:12px;">💡 Why This Is Critical</h3>
+        <p style="color:var(--text-muted);">With plaintext passwords, an attacker who gains read access (via SQLi, DB backup leak, or insider threat) can immediately log in as any user — including admin — with no additional effort.</p>
+        <p style="color:var(--text-muted);">This also enables <strong>credential stuffing</strong>: users often reuse passwords across sites.</p>
+      </div>
+      <div class="card" style="border-color:rgba(200,168,107,0.3);">
+        <h3 style="color:var(--success);margin-bottom:12px;">✓ The Fix</h3>
+        <pre style="font-family:monospace;font-size:12px;color:var(--text-muted);line-height:1.8;">// Store
+const hash = await bcrypt.hash(password, 12);
+
+// Verify
+const ok = await bcrypt.compare(password, hash);
+
+// Query — use parameterized
+SELECT id FROM users
+WHERE username = ?  ← placeholder</pre>
       </div>
     </div>
   </div>

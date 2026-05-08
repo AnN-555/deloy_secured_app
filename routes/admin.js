@@ -113,6 +113,21 @@ router.post('/user/:id', requireAdmin, (req, res) => {
   });
 });
 
+router.post('/user/:id/balance', requireAdmin, (req, res) => {
+  const { balance } = req.body;
+  const db = req.db;
+  db.run('UPDATE users SET balance = ? WHERE id = ?', [balance, req.params.id], (err) => {
+    res.redirect('/admin/users');
+  });
+});
+
+router.post('/user/:id/delete', requireAdmin, (req, res) => {
+  const db = req.db;
+  db.run('DELETE FROM users WHERE id = ?', [req.params.id], (err) => {
+    res.redirect('/admin/users');
+  });
+});
+
 router.get('/settings', requireAdmin, (req, res) => {
   const db = req.db;
   db.all('SELECT * FROM app_config', [], (err, configs) => {

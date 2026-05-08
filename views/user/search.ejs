@@ -14,42 +14,87 @@
         <a href="/user/dashboard">Home</a>
         <a href="/user/menu">Menu</a>
         <a href="/user/cart">Cart</a>
-        <a href="/user/profile">Profile</a>
+        <a href="/user/orders">Orders</a>
         <a href="/user/search" class="active">Search</a>
       </div>
       <div class="nav-right">
+        <span class="user-info">👤 <%= user.username %></span>
         <a href="/logout" class="logout">Logout</a>
       </div>
     </nav>
 
     <div class="card">
-      <h2>🔍 Search Drinks or Users</h2>
-      <p style="color:var(--text-muted);margin-bottom:20px;">Try searching for drinks or SQL injection: <code>' OR '1'='1</code></p>
+      <h2>🔍 Search Drinks</h2>
+      <p style="color:var(--text-muted);margin-bottom:16px;">
+        Search for drinks by name. Try SQL injection: <code>' OR '1'='1</code>
+      </p>
+
+      <div style="background:rgba(0,0,0,0.3);padding:10px 14px;border-radius:8px;font-family:monospace;font-size:12px;margin-bottom:16px;word-break:break-all;color:#ff6b6b;">
+        <strong>Query:</strong> <%= sql %>
+      </div>
 
       <form action="/user/search" method="POST" style="display:flex;gap:12px;align-items:end;">
         <div style="flex:1;">
-          <label>Search</label>
-          <input type="text" name="q" placeholder="Search..." value="<%= query %>" required>
+          <label>Search drinks</label>
+          <input type="text" name="q" placeholder="Enter drink name or SQL payload..." value="<%= query %>" required autofocus>
         </div>
         <button type="submit">Search</button>
       </form>
 
-      <% if (results.length > 0) { %>
-        <div class="table-wrapper" style="margin-top:24px;">
+      <% if (error) { %>
+        <div class="alert alert-danger" style="margin-top:16px;">
+          <strong>SQL Error:</strong> <%= error %>
+        </div>
+      <% } %>
+
+      <% if (drinks.length > 0) { %>
+        <div class="table-wrapper" style="margin-top:20px;">
           <table>
             <thead>
-              <tr><th>ID</th><th>Username</th><th>Email</th></tr>
+              <tr>
+                <th>col_1 / id</th>
+                <th>col_2 / name</th>
+                <th>col_3 / price</th>
+                <th>col_4 / category</th>
+                <th>col_5 / image</th>
+                <th>col_6 / stock</th>
+              </tr>
             </thead>
             <tbody>
-              <% results.forEach(r => { %>
-                <tr><td><%= r.id %></td><td><strong><%= r.username %></strong></td><td><%= r.email %></td></tr>
+              <% drinks.forEach(d => { %>
+                <tr>
+                  <td style="color:var(--text-muted);font-family:monospace;"><%= d.id %></td>
+                  <td><strong><%= d.name %></strong></td>
+                  <td style="color:var(--danger);font-family:monospace;font-weight:600;"><%= d.price %></td>
+                  <td style="color:var(--text-muted);"><%= d.category %></td>
+                  <td style="font-family:monospace;font-size:12px;max-width:160px;word-break:break-all;"><%= d.image %></td>
+                  <td style="color:var(--success);"><%= d.stock %></td>
+                </tr>
               <% }); %>
             </tbody>
           </table>
         </div>
-      <% } else if (query) { %>
-        <div class="alert alert-warning" style="margin-top:20px;">No results found for "<%= query %>"</div>
+        <div class="alert alert-success" style="margin-top:12px;">
+          ✓ Query returned <%= drinks.length %> row(s)
+        </div>
+      <% } else if (query && !error) { %>
+        <div class="alert alert-warning" style="margin-top:16px;">No results for "<%= query %>"</div>
       <% } %>
+    </div>
+
+    <div class="card" style="border-color:rgba(255,107,107,0.3);">
+      <h3 style="color:var(--danger);">💉 SQL Injection Payloads</h3>
+      <p style="color:var(--text-muted);margin-bottom:16px;">Try these in the search bar:</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div style="background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;">
+          <strong style="color:var(--success);">All drinks</strong>
+          <input type="text" readonly value="' OR '1'='1" onclick="this.select()" style="width:100%;margin-top:6px;padding:5px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;font-size:11px;">
+        </div>
+        <div style="background:rgba(0,0,0,0.2);padding:10px;border-radius:6px;">
+          <strong style="color:var(--success);">UNION dump users</strong>
+          <input type="text" readonly value="' UNION SELECT id,username,password,role,email,balance FROM users--" onclick="this.select()" style="width:100%;margin-top:6px;padding:5px;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;font-family:monospace;font-size:11px;">
+        </div>
+      </div>
     </div>
   </div>
 </body>

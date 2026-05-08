@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Order #<%= order.id %> - Milk Tea Shop</title>
+  <title>Order Detail - IDOR Demo</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
@@ -12,20 +12,40 @@
       <div class="logo">MilkTea</div>
       <div class="nav-links">
         <a href="/user/dashboard">Home</a>
-        <a href="/vuln/idor">Orders</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/vuln/sqli">A1</a>
+        <a href="/vuln/auth">A2</a>
+        <a href="/vuln/xss">A3</a>
+        <a href="/vuln/idor" class="active">A4</a>
+        <a href="/vuln/config">A5</a>
+        <a href="/vuln/data">A6</a>
       </div>
       <div class="nav-right">
         <a href="/logout" class="logout">Logout</a>
       </div>
     </nav>
 
+    <% if (error || !order) { %>
+      <div class="card">
+        <div class="alert alert-danger"><%= error || 'Order not found' %></div>
+        <a href="/vuln/idor" class="btn secondary">← Back to IDOR Lab</a>
+      </div>
+    <% } else { %>
+
+    <div class="alert alert-danger" style="margin-bottom:20px;">
+      ⚠ <strong>IDOR Exploit Active</strong> — You are viewing order <strong>#<%= order.id %></strong> which belongs to user
+      <strong>#<%= order.user_id %> (<%= order.owner_username %>)</strong>.
+      No authorization check was performed.
+    </div>
+
     <div class="card">
+      <span class="vuln-badge critical">⚠ A4: IDOR — Unauthorized Access</span>
       <h2>📦 Order #<%= order.id %></h2>
 
       <div class="dashboard-grid" style="margin-top:20px;">
         <div class="stat-card">
-          <div class="label">User ID</div>
-          <div class="value accent">#<%= order.user_id %></div>
+          <div class="label">Owner (User ID)</div>
+          <div class="value accent" style="font-size:20px;">#<%= order.user_id %> — <%= order.owner_username %></div>
         </div>
         <div class="stat-card">
           <div class="label">Total</div>
@@ -38,7 +58,7 @@
       </div>
 
       <table style="margin-top:20px;">
-        <tr><td style="color:var(--text-muted);width:150px;">Order Date</td><td><%= new Date(order.order_date).toLocaleString() %></td></tr>
+        <tr><td style="color:var(--text-muted);width:160px;">Order Date</td><td><%= new Date(order.order_date).toLocaleString() %></td></tr>
         <% if (order.delivery_address) { %>
           <tr><td style="color:var(--text-muted);">Delivery Address</td><td><%= order.delivery_address %></td></tr>
         <% } %>
@@ -46,9 +66,34 @@
           <tr><td style="color:var(--text-muted);">Notes</td><td><%= order.notes %></td></tr>
         <% } %>
       </table>
+
+      <% if (items && items.length > 0) { %>
+        <h3 style="margin-top:24px;margin-bottom:12px;">Order Items</h3>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr><th>Item</th><th>Qty</th><th>Price</th><th>Subtotal</th></tr>
+            </thead>
+            <tbody>
+              <% items.forEach(function(item) { %>
+                <tr>
+                  <td><%= item.image %> <%= item.name %></td>
+                  <td><%= item.quantity %></td>
+                  <td>$<%= item.price.toFixed(2) %></td>
+                  <td style="color:var(--success);">$<%= (item.price * item.quantity).toFixed(2) %></td>
+                </tr>
+              <% }); %>
+            </tbody>
+          </table>
+        </div>
+      <% } %>
     </div>
 
-    <a href="/vuln/idor" class="btn secondary" style="margin-top:16px;">← Back</a>
+    <div style="margin-top:16px;">
+      <a href="/vuln/idor" class="btn secondary">← Back to IDOR Lab</a>
+    </div>
+
+    <% } %>
   </div>
 </body>
 </html>

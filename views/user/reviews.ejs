@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Customer Reviews - Milk Tea Shop</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="container">
+    <nav>
+      <div class="logo">MilkTea</div>
+      <div class="nav-links">
+        <a href="/user/dashboard">Home</a>
+        <a href="/user/menu">Menu</a>
+        <a href="/user/cart">Cart</a>
+        <a href="/user/orders">Orders</a>
+        <a href="/user/reviews" class="active">Reviews</a>
+        <a href="/vuln">Exploit Lab</a>
+      </div>
+      <div class="nav-search">
+        <form action="/user/search" method="POST">
+          <input type="text" name="q" placeholder="Search drinks..." autocomplete="off">
+          <button type="submit">Search</button>
+        </form>
+      </div>
+      <div class="nav-right">
+        <span class="user-info">👤 <%= user.username %></span>
+        <a href="/logout" class="logout">Logout</a>
+      </div>
+    </nav>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2>⭐ Customer Reviews</h2>
+      <a href="/vuln/xss" class="btn" style="padding:8px 16px;font-size:13px;">+ Leave a Review</a>
+    </div>
+
+    <% if (!reviews || reviews.length === 0) { %>
+      <div class="card" style="text-align:center;padding:40px;">
+        <p style="font-size:48px;margin-bottom:12px;">⭐</p>
+        <p style="color:var(--text-muted);">No reviews yet. Be the first!</p>
+      </div>
+    <% } else { %>
+      <% reviews.forEach(function(r) { %>
+        <div class="card" style="margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+            <div>
+              <strong style="color:var(--primary-light);font-size:16px;"><%= r.name || r.username || 'Anonymous' %></strong>
+              <span style="color:var(--text-muted);font-size:12px;margin-left:10px;"><%= r.created_at %></span>
+            </div>
+            <span style="color:var(--success);">★★★★★</span>
+          </div>
+          <!-- A3 XSS: comment rendered as raw HTML — không escape -->
+          <div style="color:var(--text);line-height:1.7;"><%- r.comment %></div>
+        </div>
+      <% }); %>
+    <% } %>
+  </div>
+</body>
+</html>

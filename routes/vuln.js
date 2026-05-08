@@ -2,99 +2,113 @@ const express = require('express');
 const router = express.Router();
 
 function requireAuth(req, res, next) {
-  if (!req.session.userId) {
-    return res.redirect('/login');
-  }
+  if (!req.session.userId) return res.redirect('/login');
   next();
 }
 
+// Root → redirect to A1
+router.get('/', requireAuth, (req, res) => {
+  res.redirect('/vuln/sqli');
+});
+
+// A1 - SQL Injection
 router.get('/sqli', requireAuth, (req, res) => {
-  res.render('vuln/sqli', { results: [], query: '' });
+  const sql = `SELECT id, username, email, role, balance FROM users WHERE username LIKE '%%'`;
+  res.render('vuln/sqli', { query: '', sql, results: [], error: null });
 });
 
 router.post('/sqli', requireAuth, (req, res) => {
   const { search } = req.body;
   const db = req.db;
   const sql = `SELECT id, username, email, role, balance FROM users WHERE username LIKE '%${search}%'`;
-  db.all(sql, [], (err, results) => {
-    if (err) results = [];
-    res.render('vuln/sqli', { results, query: search });
+  db.all(sql, [], (err, rows) => {
+    res.render('vuln/sqli', {
+      query: search, sql,
+      results: err ? [] : (rows || []),
+      error: err ? err.message : null
+    });
   });
 });
 
-router.get('/xss', requireAuth, (req, res) => {
-  const db = req.db;
-  db.all('SELECT * FROM reviews ORDER BY id DESC LIMIT 10', [], (err, reviews) => {
-    res.render('vuln/xss', { output: '', name: '', reviews: reviews || [] });
+// A2 - Broken Authentication
+router.get('/auth', requireAuth, (req, res) => {
+  const sessionCookie = req.cookies['connect.sid'] || '(not found)';
+  res.render('vuln/auth', {
+    sessionData: {
+      userId: req.session.userId,
+      username: req.session.username,
+      role: req.session.role,
+      email: req.session.email
+    },
+    sessionCookie
   });
+});
+
+// No requireAuth - demonstrates unauthenticated brute force
+router.post('/auth/bruteforce', (req, res) => {
+  const { username, password } = req.body;
+  const db = req.db;
+  const query = `SELECT * FROM users WHERE username = '${username}' AND password = '${password}'`;
+  db.get(query, (err, user) => {
+    res.json({
+      success: !!user && !err,
+      query,
+      message: user
+        ? `SUCCESS — User: ${user.username} | Role: ${user.role} | Balance: $${user.balance}`
+        : `FAILED — Invalid credentials`
+    });
+  });
+});
+
+// A3 - XSS
+router.get('/xss', requireAuth, (req, res) => {
+  res.render('vuln/xss', { output: null, name: '', comment: '' });
 });
 
 router.post('/xss', requireAuth, (req, res) => {
   const { name, comment } = req.body;
   const db = req.db;
-
+  const userId = req.session.userId;
   const sql = `INSERT INTO reviews (user_id, name, comment, rating, created_at)
-               VALUES (${req.session.userId}, '${name}', '${comment}', 5, datetime('now'))`;
-  db.run(sql, (err) => {
-    if (err) console.error(err);
-  });
-
-  res.render('vuln/xss', {
-    output: `Thank you <strong>${name}</strong> for your review!<br><em>${comment}</em>`,
-    name,
-    reviews: []
-  });
+               VALUES (${userId}, '${name}', '${comment}', 5, datetime('now'))`;
+  db.run(sql, (err) => { if (err) console.error(err); });
+  const output = `Thank you <strong>${name}</strong> for your review!<br><em>${comment}</em>`;
+  res.render('vuln/xss', { output, name, comment });
 });
 
+// A4 - IDOR: show current user's orders, access any order via /vuln/orders/:id
 router.get('/idor', requireAuth, (req, res) => {
   const db = req.db;
-  db.all('SELECT * FROM orders WHERE user_id = ?', [req.session.userId], (err, orders) => {
-    res.render('vuln/idor', { orders, allOrders: [] });
+  db.all('SELECT * FROM orders ORDER BY id DESC', [], (err, orders) => {
+    res.render('vuln/idor', {
+      orders: orders || [],
+      currentUserId: req.session.userId
+    });
   });
 });
 
-router.get('/orders/all', requireAuth, (req, res) => {
-  const db = req.db;
-  const sql = `SELECT o.*, u.username FROM orders o
-               JOIN users u ON o.user_id = u.id
-               WHERE o.user_id = ${req.session.userId}
-               ORDER BY o.order_date DESC`;
-  db.all(sql, [], (err, orders) => {
-    res.render('vuln/idor', { orders: orders || [], allOrders: [] });
-  });
-});
 
+// A5 - Security Misconfiguration
 router.get('/config', requireAuth, (req, res) => {
   const db = req.db;
   db.all('SELECT name, value FROM app_config', [], (err, configs) => {
-    if (err || !configs || configs.length === 0) {
-      configs = [
-        { name: 'db_host', value: 'localhost' },
-        { name: 'db_user', value: 'root' },
-        { name: 'db_pass', value: 'password123' },
-        { name: 'api_key', value: 'sk_live_secret_key_12345' },
-        { name: 'admin_email', value: 'admin@milktea.com' },
-        { name: 'debug_mode', value: 'true' }
-      ];
-    }
-    res.render('vuln/config', { configs });
+    const responseHeaders = {
+      'X-Powered-By': 'Express',
+      'X-Frame-Options': '(missing)',
+      'Content-Security-Policy': '(missing)',
+      'X-Content-Type-Options': '(missing)',
+      'Strict-Transport-Security': '(missing)',
+      'Referrer-Policy': '(missing)'
+    };
+    res.render('vuln/config', { configs: configs || [], responseHeaders });
   });
 });
 
+// A6 - Sensitive Data Exposure (includes plaintext password column)
 router.get('/data', requireAuth, (req, res) => {
   const db = req.db;
-  const sql = `SELECT id, username, email, role, balance FROM users`;
-  db.all(sql, [], (err, users) => {
-    if (err) users = [];
-    res.render('vuln/data', { users });
-  });
-});
-
-router.get('/orders/:id', requireAuth, (req, res) => {
-  const db = req.db;
-  db.get('SELECT * FROM orders WHERE id = ?', [req.params.id], (err, order) => {
-    if (!order) return res.status(404).send('Order not found');
-    res.render('vuln/order-detail', { order });
+  db.all('SELECT id, username, password, email, role, balance FROM users', [], (err, users) => {
+    res.render('vuln/data', { users: users || [] });
   });
 });
 

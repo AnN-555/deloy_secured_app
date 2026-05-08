@@ -139,6 +139,39 @@ app.get('/', (req, res) => {
   res.redirect('/login');
 });
 
+// A5: Debug endpoint — không có auth, không disabled trên production
+app.get('/debug', (req, res) => {
+  res.json({
+    status: 'ok',
+    app: 'anson-milktea',
+    node_version: process.version,
+    platform: process.platform,
+    uptime_seconds: Math.floor(process.uptime()),
+    db_path: require('path').resolve('./data.db'),
+    session_secret: 'devsecret',
+    env: {
+      NODE_ENV: process.env.NODE_ENV || 'development',
+      PORT: process.env.PORT || 3000
+    },
+    endpoints: ['/login', '/register', '/user/*', '/admin/*', '/vuln/*', '/api/*', '/debug']
+  });
+});
+
+// A6: Sensitive Data Exposure — API trả về password plaintext, không có bảo vệ
+app.get('/api/profile', (req, res) => {
+  if (!req.session.userId) return res.status(401).json({ error: 'Unauthorized' });
+  dbconn.get('SELECT * FROM users WHERE id = ?', [req.session.userId], (err, user) => {
+    res.json(user || {});
+  });
+});
+
+// A6 bonus: endpoint không cần auth, trả về toàn bộ users kèm password
+app.get('/api/users', (req, res) => {
+  dbconn.all('SELECT * FROM users', [], (err, users) => {
+    res.json(users || []);
+  });
+});
+
 app.listen(PORT, () => {
   console.log(`MilkTea Shop running on http://localhost:${PORT}`);
 });

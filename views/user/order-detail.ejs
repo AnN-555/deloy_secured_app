@@ -22,6 +22,14 @@
       </div>
     </nav>
 
+    <% if (order.user_id !== currentUserId) { %>
+    <div class="alert alert-danger" style="margin-bottom:16px;">
+      ⚠ <strong>IDOR!</strong> Bạn đang xem đơn hàng của <strong><%= order.owner_username %></strong>
+      (User ID #<%= order.user_id %>) — không có ownership check nào ngăn bạn truy cập.
+      Thử thay đổi ID trên URL để xem đơn hàng của người khác.
+    </div>
+    <% } %>
+
     <div class="card">
       <div class="card-header">
         <h2 class="card-title">📦 Order #<%= order.id %></h2>
